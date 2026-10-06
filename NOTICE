@@ -1,0 +1,11 @@
+YouIAgent
+Copyright 2026 thekusaldarshana
+
+This product includes dependencies with their own license terms:
+
+- @langchain/core and @langchain/langgraph: MIT License.
+- HyperFrames: Apache License 2.0.
+- GSAP: GSAP Standard License (https://gsap.com/standard-license/).
+
+No third-party music, generated film, source capture, customer content, credentials,
+or Brag assets are included in this source distribution.
