@@ -54,6 +54,9 @@ test('LangGraph executes deterministic gates and one repair before rendering', a
       prep: async () => {},
       agent: async (workspace, _job, stage) => {
         calls.push(stage);
+        if (stage === 'plan') for (const name of ['film-graph', 'film-brand', 'film-concept', 'film-motion', 'film-review']) {
+          assert.match(await readFile(join(workspace, '.agents', 'skills', name, 'SKILL.md'), 'utf8'), new RegExp(`name: ${name}`));
+        }
         const output = join(workspace, 'film-output');
         await mkdir(output, { recursive: true });
         if (stage === 'plan') {
@@ -67,6 +70,7 @@ test('LangGraph executes deterministic gates and one repair before rendering', a
       },
       evaluator: async () => ({ probabilitySupported: 0.99, model: 'fixture' }),
       selectedAudio: async () => ({ choice: 'none' }),
+      review: async () => { calls.push('review'); return { status: 'reported', report: 'fixture' }; },
       run: async (_name, _args, workspace) => {
         if (workspace.endsWith('composition')) {
           checks++;
@@ -80,11 +84,11 @@ test('LangGraph executes deterministic gates and one repair before rendering', a
     const { result } = await runFilm({ websiteUrl: 'https://example.com', repositoryUrl: 'https://github.com/example/repo', audioDir: null, musicMode: 'silent', model: 'fixture', effort: 'high' }, { jobDir, graph });
     assert.equal(result.render.durationSeconds, 18);
     assert.equal(result.compositionRepairs, 1);
-    assert.deepEqual(calls, ['plan', 'compose', 'repair-composition-0']);
+    assert.deepEqual(calls, ['plan', 'compose', 'repair-composition-0', 'review']);
     assert.equal(checks, 2);
     assert.match(await readFile(join(jobDir, 'graph-events.jsonl'), 'utf8'), /"node":"render"/);
     await runFilm({ websiteUrl: 'https://example.com', repositoryUrl: 'https://github.com/example/repo', audioDir: null, musicMode: 'silent', model: 'fixture', effort: 'high', resumePlan: true, resumeComposition: true }, { jobDir, graph });
-    assert.deepEqual(calls, ['plan', 'compose', 'repair-composition-0'], 'resuming must not call either AI stage again');
+    assert.deepEqual(calls, ['plan', 'compose', 'repair-composition-0', 'review', 'review'], 'resuming must not call planning or composition again');
     assert.equal(checks, 3, 'resuming rechecks the saved composition');
   } finally { await rm(root, { recursive: true, force: true }); }
 });

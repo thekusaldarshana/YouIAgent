@@ -5,7 +5,7 @@ async function json(path) { return readFile(path, 'utf8').then(JSON.parse).catch
 async function exists(path) { return Boolean((await stat(path).catch(() => null))?.isFile()); }
 
 async function agentActivity(jobDir, event) {
-  if (!event || event.state !== 'start' || !['plan', 'repairPlan', 'compose', 'repairComposition'].includes(event.node)) return null;
+  if (!event || event.state !== 'start' || !['plan', 'repairPlan', 'compose', 'repairComposition', 'review'].includes(event.node)) return null;
   const prefix = event.node === 'repairPlan' ? 'agent-repair-plan' : event.node === 'repairComposition' ? 'agent-repair-composition-' : `agent-${event.node}`;
   const files = (await readdir(jobDir).catch(() => [])).filter((name) => name.startsWith(prefix) && name.endsWith('.stdout'));
   const entries = await Promise.all(files.map(async (name) => ({ name, info: await stat(join(jobDir, name)).catch(() => null) })));
@@ -68,7 +68,7 @@ export async function readJobStatus(jobDir, running = false) {
     events: events.slice(-28), activity: running ? await agentActivity(jobDir, activeEvent) : null,
     activeSince: activeEvent?.at || null,
     phases: { source: completed('prepare'), story: Boolean(gate?.passed && completed('planGate')), composition: Boolean(check?.passed), render: Boolean(report?.render) },
-    filmReady: Boolean(report?.render?.output), music: report?.music || null, musicChoice: report?.plan?.musicChoice || null,
+    filmReady: Boolean(report?.render?.output), music: report?.music || null, musicChoice: report?.plan?.musicChoice || null, review: report?.review || null,
     render: report?.render ? { durationSeconds: report.render.durationSeconds, width: report.render.video?.width, height: report.render.video?.height, hasAudio: report.render.hasAudio === true, audioSource: report.render.audioSource || null, audioFallback: report.render.audioFallback || false } : null,
   };
 }

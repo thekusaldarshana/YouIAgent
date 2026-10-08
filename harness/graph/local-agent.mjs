@@ -5,7 +5,10 @@ import { delimiter, join } from 'node:path';
 export function agentInvocation(provider) {
   if (process.platform !== 'win32') return { command: provider, prefix: [] };
   const directories = (process.env.PATH || '').split(delimiter);
-  if (directories.some((directory) => existsSync(join(directory, `${provider}.exe`)))) return { command: `${provider}.exe`, prefix: [] };
+  for (const directory of directories) {
+    const executable = join(directory, `${provider}.exe`);
+    if (existsSync(executable)) return { command: executable, prefix: [] };
+  }
   if (provider === 'codex') {
     for (const directory of directories) {
       const script = join(directory, 'node_modules', '@openai', 'codex', 'bin', 'codex.js');
@@ -15,20 +18,24 @@ export function agentInvocation(provider) {
   return { command: `${provider}.exe`, prefix: [] };
 }
 
-export function agentArgs(provider, { workspace, model, effort, output, prompt }) {
-  if (provider === 'claude') return [
-    '-p', '--output-format', 'stream-json', '--verbose', '--no-session-persistence',
-    '--permission-mode', 'acceptEdits', ...(model ? ['--model', model] : []), prompt,
-  ];
-  if (provider === 'codex') return [
-    'exec', '--json', '--ephemeral', '--skip-git-repo-check', '-C', workspace,
-    '-m', model || 'gpt-6-sol', '-c', `model_reasoning_effort=${effort || 'high'}`,
-    '--approve-for-me', '-o', output, prompt,
-  ];
+export async function runAgent({ provider, workspace, jobDir, stage, prompt, model, effort, timeoutMs = 26 * 60_000 }) {
+  const logBase = join(jobDir, `agent-${stage}`);
+  if (provider === 'codex') {
+    const { runCodexStage } = await import('./codex-app-server.mjs');
+    return { ...await runCodexStage({ workspace, logBase, prompt, model, effort, timeoutMs }), provider, model, effort };
+  }
+  if (provider === 'claude') {
+    const { runClaudeStage } = await import('./claude-sdk.mjs');
+    return { ...await runClaudeStage({ workspace, logBase, prompt, model, timeoutMs }), provider, model, effort };
+  }
   throw new Error(`Unknown generation provider: ${provider}`);
 }
 
 export async function agentStatus(provider) {
+  if (provider === 'codex') {
+    const { codexConnectionStatus } = await import('./codex-app-server.mjs');
+    return codexConnectionStatus();
+  }
   const args = provider === 'claude' ? ['auth', 'status'] : ['login', 'status'];
   const invocation = agentInvocation(provider);
   return new Promise((resolve) => {
@@ -46,7 +53,7 @@ export async function agentStatus(provider) {
       if (provider === 'claude') {
         try {
           const status = JSON.parse(output);
-          return done({ ready: status.loggedIn === true, detail: status.loggedIn ? `Signed in via ${status.authMethod}.` : 'Run claude auth login in a terminal.' });
+          return done({ ready: status.loggedIn === true, authType: status.authMethod, detail: status.loggedIn ? `Connected through ${status.authMethod}.` : 'Run claude auth login to connect Claude Code.' });
         } catch { return done({ ready: false, detail: 'Could not read Claude authentication status.' }); }
       }
       done({ ready: true, detail: output.trim().split('\n')[0] || 'Signed in.' });

@@ -45,7 +45,16 @@ main{max-width:1024px;margin:0 auto;padding:0 32px}
 .panel input::placeholder,.panel textarea::placeholder{color:var(--fg-dim)}
 .panel textarea{resize:vertical;min-height:86px}
 .feedback{font-size:13px;color:var(--fg-muted);margin:10px 0 0;line-height:1.5}
-#provider-status{margin:0 0 20px}
+#provider-status{margin:0 0 8px}
+.connection-actions{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}
+.connection-actions button,#cancel-login{padding:8px 12px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:var(--bg-card);color:var(--fg);font-size:13px;font-weight:500;cursor:pointer;transition:border-color var(--motion),background var(--motion)}
+.connection-actions button:hover,#cancel-login:hover{border-color:var(--accent);background:var(--accent-dim)}
+.connection-actions button:disabled{opacity:.5;cursor:wait}
+#login-status:empty{display:none}
+#login-link{display:inline-block;margin:8px 12px 12px 0;color:var(--accent);font-size:13px;text-decoration:none}
+#login-link:hover{text-decoration:underline}
+#cancel-login{margin-bottom:12px}
+#render-status{margin-bottom:20px}
 .field-note{font-size:13px;line-height:1.5;color:var(--fg-muted);margin:0 0 20px}
 .field-note code{color:var(--fg)}
 

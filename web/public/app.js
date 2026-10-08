@@ -5,10 +5,16 @@ const provider = document.querySelector('#provider');
 const model = document.querySelector('#model');
 const modelOptions = document.querySelector('#model-options');
 const providerStatus = document.querySelector('#provider-status');
+const loginStatus = document.querySelector('#login-status');
+const loginLink = document.querySelector('#login-link');
+const connectProvider = document.querySelector('#connect-provider');
+const cancelLogin = document.querySelector('#cancel-login');
 const renderStatus = document.querySelector('#render-status');
 let providerStates = {};
 let renderReady = false;
 let modelEdited = false;
+let activeLogin = null;
+let loginTimer;
 const modelSuggestions = { codex: ['gpt-6-sol', 'gpt-6-astra', 'gpt-6-luna'], claude: ['sonnet', 'opus', 'haiku'] };
 
 function updateProvider() {
@@ -17,21 +23,99 @@ function updateProvider() {
   }));
   if (!modelEdited) model.value = provider.value === 'codex' ? 'gpt-6-sol' : '';
   const status = providerStates[provider.value];
-  providerStatus.textContent = status ? `${status.ready ? 'Ready' : 'Unavailable'}: ${status.detail}` : 'Checking local CLI login…';
+  providerStatus.textContent = status ? status.ready ? status.detail : `Unavailable: ${status.detail}` : 'Checking account connection…';
+  connectProvider.textContent = activeLogin ? 'Sign-in in progress' : status?.ready ? `Switch ${provider.value === 'codex' ? 'Codex' : 'Claude Code'} account` : `Connect ${provider.value === 'codex' ? 'Codex' : 'Claude Code'}`;
+  connectProvider.disabled = Boolean(activeLogin);
   submit.disabled = status?.ready !== true || !renderReady;
 }
 provider.addEventListener('change', () => { modelEdited = false; updateProvider(); });
 model.addEventListener('input', () => { modelEdited = true; });
 updateProvider();
-fetch('/api/config').then((response) => response.json()).then((config) => {
-  providerStates = config.providers || {};
-  renderReady = config.renderTools?.ffmpeg === true && config.renderTools?.ffprobe === true;
-  renderStatus.textContent = renderReady ? 'FFmpeg and FFprobe are ready.' : 'FFmpeg or FFprobe is missing. Install both and restart the server, or set FFMPEG_BIN and FFPROBE_BIN.';
+async function refreshConnections() {
+  const button = document.querySelector('#refresh-providers');
+  button.disabled = true;
+  providerStatus.textContent = 'Checking account connections…';
+  try {
+    const response = await fetch('/api/config', { cache: 'no-store' });
+    const config = await response.json();
+    if (!response.ok) throw new Error(config.error || 'Connection check failed.');
+    providerStates = config.providers || {};
+    renderReady = config.renderTools?.ffmpeg === true && config.renderTools?.ffprobe === true;
+    renderStatus.textContent = renderReady ? 'FFmpeg and FFprobe are ready.' : 'FFmpeg or FFprobe is missing. Install both and restart the server, or set FFMPEG_BIN and FFPROBE_BIN.';
+    updateProvider();
+  } catch (error) { providerStates = {}; updateProvider(); providerStatus.textContent = error.message; }
+  finally { button.disabled = false; }
+}
+document.querySelector('#refresh-providers').addEventListener('click', refreshConnections);
+refreshConnections();
+
+function showLogin(login) {
+  loginStatus.textContent = `${login.provider === 'codex' ? 'Codex' : 'Claude Code'}: ${login.message}`;
+  let url;
+  try { url = login.url && new URL(login.url); } catch { url = null; }
+  if (login.state === 'waiting' && url?.protocol === 'https:') {
+    loginLink.href = url.href;
+    loginLink.classList.remove('hidden');
+  } else loginLink.classList.add('hidden');
+  cancelLogin.classList.toggle('hidden', login.state !== 'waiting');
+}
+
+async function pollLogin() {
+  if (!activeLogin) return;
+  try {
+    const response = await fetch(`/api/providers/${activeLogin.provider}/connect/${activeLogin.id}`, { cache: 'no-store' });
+    const login = await response.json();
+    if (!response.ok) throw new Error(login.error || 'Could not check sign-in.');
+    showLogin(login);
+    if (login.state === 'waiting') { loginTimer = setTimeout(pollLogin, 1500); return; }
+  } catch (error) { loginStatus.textContent = error.message; }
+  activeLogin = null;
   updateProvider();
-}).catch(() => { providerStatus.textContent = 'Could not check local CLI logins.'; });
-const phaseFor = { capture: 'source', prepare: 'source', plan: 'story', planGate: 'story', repairPlan: 'story', audio: 'composition', compose: 'composition', check: 'composition', repairComposition: 'composition', render: 'render' };
+  await refreshConnections();
+}
+
+connectProvider.addEventListener('click', async () => {
+  if (activeLogin) return;
+  const selected = provider.value;
+  const popup = selected === 'codex' ? window.open('about:blank', '_blank') : null;
+  connectProvider.disabled = true;
+  loginStatus.textContent = `Starting ${selected === 'codex' ? 'Codex' : 'Claude Code'} sign-in…`;
+  loginLink.classList.add('hidden');
+  try {
+    const response = await fetch(`/api/providers/${selected}/connect`, { method: 'POST' });
+    const login = await response.json();
+    if (!response.ok) throw new Error(login.error || 'Could not start sign-in.');
+    activeLogin = login;
+    showLogin(login);
+    if (popup) {
+      if (login.url && new URL(login.url).protocol === 'https:') popup.location.href = login.url;
+      else popup.close();
+    }
+    updateProvider();
+    if (login.state === 'waiting') loginTimer = setTimeout(pollLogin, 1500);
+    else { activeLogin = null; updateProvider(); await refreshConnections(); }
+  } catch (error) {
+    popup?.close();
+    activeLogin = null;
+    updateProvider();
+    loginStatus.textContent = error.message;
+  }
+});
+
+cancelLogin.addEventListener('click', async () => {
+  if (!activeLogin) return;
+  clearTimeout(loginTimer);
+  const login = activeLogin;
+  activeLogin = null;
+  updateProvider();
+  await fetch(`/api/providers/${login.provider}/connect/${login.id}`, { method: 'DELETE' }).catch(() => {});
+  loginStatus.textContent = 'Sign-in cancelled.';
+  loginLink.classList.add('hidden');
+  cancelLogin.classList.add('hidden');
+});
+const phaseFor = { capture: 'source', prepare: 'source', plan: 'story', planGate: 'story', repairPlan: 'story', audio: 'composition', compose: 'composition', check: 'composition', repairComposition: 'composition', render: 'render', review: 'render' };
 const phaseIds = { source: 'stage-capture', story: 'stage-plan', composition: 'stage-compose', render: 'stage-render' };
-const names = { capture: 'Reading source site and repository', prepare: 'Preparing the evidence packet', plan: 'Planning the story with AI', planGate: 'Checking source claims', repairPlan: 'Repairing the plan', audio: 'Preparing the soundtrack', compose: 'Composing the film and soundtrack with AI', check: 'Validating the composition and soundtrack', repairComposition: 'Repairing validation findings', render: 'Rendering the MP4', resume: 'Resuming saved work' };
+const names = { capture: 'Reading source site and repository', prepare: 'Preparing the evidence packet', plan: 'Planning the story with AI', planGate: 'Checking source claims', repairPlan: 'Repairing the plan', audio: 'Preparing the soundtrack', compose: 'Composing the film and soundtrack with AI', check: 'Validating the composition and soundtrack', repairComposition: 'Repairing validation findings', render: 'Rendering the MP4', review: 'Reviewing the finished film', resume: 'Resuming saved work' };
 let pollTimer;
 let elapsedTimer;
 let currentJobId;
@@ -170,6 +254,10 @@ function showJob(job) {
     document.querySelector('#film-download').href = `${base}/film.mp4`;
     document.querySelector('#poster-download').href = `${base}/poster.jpg`;
     document.querySelector('#manifest-link').href = `${base}/source-manifest.json`;
+    document.querySelector('#review-link').href = `${base}/visual-review.md`;
+    document.querySelector('#sheet-link').href = `${base}/contact-sheet.jpg`;
+    document.querySelector('#sheet-link').classList.toggle('hidden', !job.review?.contactSheet);
+    document.querySelector('#film-review-note').textContent = job.review?.status === 'unreviewed' ? 'Visual review was unavailable; inspect the film yourself before sharing.' : 'The visual review is an advisory report; inspect the film yourself before sharing.';
     document.querySelector('#film-wrap').classList.remove('hidden');
     const audioNote = document.querySelector('#film-audio-note');
     audioNote.replaceChildren();

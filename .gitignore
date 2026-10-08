@@ -25,6 +25,10 @@
 !/harness/eval/claim-jev.mjs
 /harness/skills/*
 !/harness/skills/film-graph/
+!/harness/skills/film-brand/
+!/harness/skills/film-concept/
+!/harness/skills/film-motion/
+!/harness/skills/film-review/
 /harness/bench/
 
 # Web source adapters and the local film studio.
@@ -36,6 +40,7 @@
 !/web/source.mjs
 !/web/server.mjs
 !/web/job-state.mjs
+!/web/provider-login.mjs
 !/web/job-state.test.mjs
 !/web/smoke.test.mjs
 !/web/package.json

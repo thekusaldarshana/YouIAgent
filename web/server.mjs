@@ -7,6 +7,7 @@ import { dirname, extname, isAbsolute, join, relative, resolve, sep } from 'node
 import { fileURLToPath } from 'node:url';
 import { APP_NAME } from './config.mjs';
 import { readJobStatus } from './job-state.mjs';
+import { startProviderLogin, getProviderLogin, cancelProviderLogin } from './provider-login.mjs';
 import { agentStatus, binaryStatus, renderBinary } from '../harness/graph/local-agent.mjs';
 
 const root = dirname(fileURLToPath(import.meta.url));
@@ -118,6 +119,18 @@ async function serveFile(req, res, path, type) {
 
 async function handle(req, res) {
   const url = new URL(req.url, `http://127.0.0.1:${port}`);
+  const providerLogin = url.pathname.match(/^\/api\/providers\/(codex|claude)\/connect(?:\/([0-9a-f-]{36}))?$/);
+  if (providerLogin) {
+    if ((req.method === 'POST' || req.method === 'DELETE') && !localOrigin(req)) return sendJson(res, 403, { error: 'Local origin required.' });
+    const [, provider, id] = providerLogin;
+    if (req.method === 'POST' && !id) return sendJson(res, 200, await startProviderLogin(provider));
+    if (req.method === 'GET' && id && idPattern.test(id)) {
+      const login = getProviderLogin(provider, id);
+      return sendJson(res, login ? 200 : 404, login || { error: 'Sign-in session not found.' });
+    }
+    if (req.method === 'DELETE' && id && idPattern.test(id)) return sendJson(res, await cancelProviderLogin(provider, id) ? 200 : 404, { cancelled: true });
+    return sendJson(res, 405, { error: 'Method not allowed.' });
+  }
   if (url.pathname === '/api/config' && req.method === 'GET') {
     const [codex, claude, ffmpeg, ffprobe] = await Promise.all([agentStatus('codex'), agentStatus('claude'), binaryStatus(renderBinary('ffmpeg', process.env.FFMPEG_BIN)), binaryStatus(renderBinary('ffprobe', process.env.FFPROBE_BIN))]);
     return sendJson(res, 200, { name: APP_NAME, mode: 'local', model: process.env.FILM_MODEL || 'gpt-6-sol', profile: process.env.FILM_PROFILE || 'product', providers: { codex, claude }, renderTools: { ffmpeg, ffprobe } });
@@ -171,10 +184,10 @@ async function handle(req, res) {
     if (!match[2]) return sendJson(res, 200, job);
     const report = await readFile(join(jobDir, 'graph-report.json'), 'utf8').then(JSON.parse).catch(() => null);
     const workspace = join(jobDir, 'workspace');
-    const paths = { 'film.mp4': report?.render?.output, 'poster.jpg': report?.render?.poster, 'plan.md': join(workspace, 'film-output', 'film-plan.md'), 'design.md': join(workspace, 'source-design.md'), 'source-manifest.json': join(jobDir, 'source-manifest.json') };
+    const paths = { 'film.mp4': report?.render?.output, 'poster.jpg': report?.render?.poster, 'contact-sheet.jpg': report?.review?.contactSheet, 'visual-review.md': report?.review?.report, 'plan.md': join(workspace, 'film-output', 'film-plan.md'), 'design.md': join(workspace, 'source-design.md'), 'source-manifest.json': join(jobDir, 'source-manifest.json') };
     const path = paths[match[2]];
-    if (!path || (match[2] === 'film.mp4' || match[2] === 'poster.jpg') && (job.state !== 'complete' || !isWithin(workspace, path))) return sendJson(res, 404, { error: 'Artifact is not ready.' });
-    return serveFile(req, res, path, match[2] === 'film.mp4' ? 'video/mp4' : match[2] === 'poster.jpg' ? 'image/jpeg' : match[2].endsWith('.json') ? MIME['.json'] : 'text/plain; charset=utf-8');
+    if (!path || (['film.mp4', 'poster.jpg', 'contact-sheet.jpg', 'visual-review.md'].includes(match[2]) && (job.state !== 'complete' || !isWithin(workspace, path)))) return sendJson(res, 404, { error: 'Artifact is not ready.' });
+    return serveFile(req, res, path, match[2] === 'film.mp4' ? 'video/mp4' : match[2].endsWith('.jpg') ? 'image/jpeg' : match[2].endsWith('.json') ? MIME['.json'] : 'text/plain; charset=utf-8');
   }
   if (req.method !== 'GET') return sendJson(res, 405, { error: 'Method not allowed.' });
   const relative = url.pathname === '/' ? 'index.html' : decodeURIComponent(url.pathname).replace(/^\/+/, '');
