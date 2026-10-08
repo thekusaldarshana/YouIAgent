@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { captureSources } from '../../web/source.mjs';
 import { prepare } from '../cli.mjs';
 import { evaluateClaim } from '../eval/claim-jev.mjs';
-import { stageAudioCatalog, stageSelectedAudio } from './audio.mjs';
+import { stageAudioCatalog, stageSelectedAudio, validateOriginalScore } from './audio.mjs';
 import { stageInputAssets } from './assets.mjs';
 import { fixUniqueContrastLiterals } from './contrast-fix.mjs';
 import { compositionFingerprint } from '../worker/fingerprint.mjs';
@@ -152,7 +152,7 @@ function planPrompt(goal, profile) {
 }
 
 function composePrompt(profile) {
-  return `Read .agents/skills/film-graph/SKILL.md and execute only its COMPOSITION stage. The approved plan and selected local music are ready. ${profile.compositionInstructions} Create a distinctive seek-safe HyperFrames composition, render handoff, and share copy. Use the captured site design. Do not run HyperFrames check/snapshot/render or fetch anything; the graph does that.`;
+  return `Read .agents/skills/film-graph/SKILL.md and execute only its COMPOSITION stage. The approved plan and audio direction are ready. If film-audio/SELECTED.md calls for an original score, create a new score for this film now; no library track has been staged. ${profile.compositionInstructions} Create a distinctive seek-safe HyperFrames composition, render handoff, and share copy. Use the captured site design. Do not run HyperFrames check/snapshot/render or fetch anything; the graph does that.`;
 }
 
 function repairPrompt(issues) {
@@ -173,7 +173,7 @@ export function createFilmGraph({ capture = captureSources, prep = prepare, agen
       const profile = resolveFilmProfile(state.input.profile);
       if (!(state.input.resumePlan && (await stat(join(state.workspace, 'PROJECT_EVIDENCE.md')).catch(() => null))?.isFile())) await prep(state.jobDir);
       await stageGraphSkill(state.workspace);
-      await stageAudioCatalog(state.workspace, state.input.audioDir, state.input.musicMode || 'auto');
+      await stageAudioCatalog(state.workspace, state.input.audioDir, state.input.musicMode || 'original');
       await stageInputAssets(state.workspace, state.input.assetDir);
       await writeFile(join(state.workspace, 'MOTION_PROFILE.md'), `# Active film profile\n\n${profile.id}\n\n${profile.planningInstructions}\n\n${profile.compositionInstructions}\n`);
       return {};
@@ -209,7 +209,12 @@ export function createFilmGraph({ capture = captureSources, prep = prepare, agen
       const composition = join(state.workspace, 'film-output', 'composition');
       if (!(await stat(join(composition, 'index.html')).catch(() => null))?.isFile()) throw new Error('Agent did not create composition/index.html.');
       const logBase = join(state.jobDir, `hyperframes-check-${state.compositionRepairs || 0}`);
-      let result = await run(HYPERFRAMES, ['check', '--json'], composition, logBase, 3 * 60_000);
+      let audioError = null;
+      if (state.audio?.choice === 'original') {
+        try { await validateOriginalScore(state.workspace, state.plan.data.durationSeconds, process.env.FFPROBE_BIN || 'ffprobe', FFMPEG_PATH); }
+        catch (error) { audioError = error.message; }
+      }
+      let result = audioError ? { code: 1, output: '', error: audioError } : await run(HYPERFRAMES, ['check', '--json'], composition, logBase, 3 * 60_000);
       let autoFixes = [];
       if (result.code === 0) {
         let parsed = null;

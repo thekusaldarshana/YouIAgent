@@ -9,7 +9,7 @@ cd harness && npm ci
 node graph/run.mjs https://example.com https://github.com/owner/repo
 ```
 
-The local test uses GPT-6 Sol through the signed-in Codex CLI. Set `FILM_MODEL` and `FILM_EFFORT` to change that adapter. Supply a directory of tracks you are licensed to use through `FILM_AUDIO_DIR`; without it, the graph produces a silent film. Supply a flat directory of licensed images, videos, and audio through `FILM_ASSET_DIR` to stage them in the job's `film-inputs/` catalog.
+The local test uses GPT-6 Sol through the signed-in Codex CLI. Set `FILM_MODEL` and `FILM_EFFORT` to change that adapter. The default asks the composition agent to create a new score for each film. Set `FILM_MUSIC_MODE=library` for the bundled CC0 tracks, `FILM_AUDIO_DIR` for your own licensed tracks, or `FILM_MUSIC_MODE=silent` for no background music. Supply a flat directory of licensed images, videos, and audio through `FILM_ASSET_DIR` to stage them in the job's `film-inputs/` catalog.
 
 Set `FILM_PROFILE=motion-studio` for the square 27-second profile. It requires a 1440×1440 render at 30 fps, a 120 BPM plan with 54 ordered beat events, and local exact source-quote validation; it therefore runs without an `OPENROUTER_API_KEY`. Provide `FFMPEG_BIN` and `FFPROBE_BIN` when FFmpeg is outside `PATH` (for example, under `~/supervenv/bin`).
 
@@ -21,7 +21,7 @@ Set `FILM_PROFILE=motion-studio` for the square 27-second profile. It requires a
 - `prepare` creates the compact evidence pack, stages the pinned runtime and motion helpers, installs the graph-specific creative skill in the job workspace, and catalogs optional local media inputs.
 - `createPlan` is the first model call. It invents the story, writes the beat plan, source-cited claims, exact source excerpts, and a music choice.
 - `planGate` verifies durations, source path containment, and exact excerpt presence. The default profile adds Jev support probabilities: only a near-certain contradiction blocks during this uncalibrated trial, while medium-confidence decisions are recorded for review. The motion-studio profile accepts only exact local source quotes. A failing plan gets at most one targeted model repair. On resume, a passing gate is reused only when the plan, cited source-file bytes, site capture hash, and repository commit match.
-- `stageAudio` copies the chosen local track, cue notes, and SFX to the job. No soundtrack is reused by default across films; the model chooses from a small catalog.
+- `stageAudio` records the planned original score path or copies a selected library track. In original mode, the composition agent writes a new synthesis source and WAV for this film; the graph validates duration and audibility before rendering.
 - `compose` is the second model call. It writes a unique HyperFrames composition and handoff. It does not run HyperFrames.
 - `checkComposition` runs the HyperFrames gate in code. A failure gets at most two targeted model repairs, each followed by the same gate.
 - `renderFilm` invokes the deterministic worker for MP4, music loudness correction, poster and FFprobe verification. New runs pass a check attestation keyed to the composition and frozen asset bytes; the worker skips its duplicate HyperFrames check only when that hash still matches. A standalone worker run without an attestation retains its own check.

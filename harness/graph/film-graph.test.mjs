@@ -7,7 +7,7 @@ import { createFilmGraph, inspectPlan, runFilm } from './film-graph.mjs';
 import { claimRequest, evaluateClaim } from '../eval/claim-jev.mjs';
 import { stageAudioCatalog } from './audio.mjs';
 
-test('automatic soundtrack plan cannot quietly select silence', async () => {
+test('original-score plan cannot quietly select silence', async () => {
   const workspace = await mkdtemp(join(tmpdir(), 'film-plan-audio-test-'));
   try {
     await mkdir(join(workspace, 'source-repo'), { recursive: true });
@@ -18,7 +18,7 @@ test('automatic soundtrack plan cannot quietly select silence', async () => {
     await writeFile(join(workspace, 'film-output', 'plan-data.json'), JSON.stringify(plan));
     const evaluate = async () => ({ probabilitySupported: 1 });
     assert.match((await inspectPlan(workspace, evaluate)).issues.join(' '), /musicChoice must be one of/);
-    plan.musicChoice = 'airy';
+    plan.musicChoice = 'original';
     await writeFile(join(workspace, 'film-output', 'plan-data.json'), JSON.stringify(plan));
     assert.equal((await inspectPlan(workspace, evaluate)).passed, true);
   } finally { await rm(workspace, { recursive: true, force: true }); }

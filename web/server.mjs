@@ -83,8 +83,8 @@ async function handle(req, res) {
     if (origin && ![`http://127.0.0.1:${port}`, `http://localhost:${port}`].includes(origin)) return sendJson(res, 403, { error: 'Local origin required.' });
     try {
       const body = await requestJson(req);
-      const musicMode = body.musicMode || 'auto';
-      if (!['auto', 'silent'].includes(musicMode)) throw new Error('Choose Auto soundtrack or Silence.');
+      const musicMode = body.musicMode || 'original';
+      if (!['original', 'library', 'silent'].includes(musicMode)) throw new Error('Choose Original score, Music library, or No music.');
       const input = { websiteUrl: validUrl(body.websiteUrl), repositoryUrl: validUrl(body.repositoryUrl, true), goal: String(body.goal || 'Create a short product launch film.').slice(0, 500), musicMode };
       return sendJson(res, 202, await startJob(input));
     } catch (error) { return sendJson(res, 400, { error: error.message }); }

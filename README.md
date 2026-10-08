@@ -11,7 +11,7 @@ Version: **0.1.0**.
 - A source-quote claim gate using OpenRouter’s Jev Decisions API.
 - A deterministic HyperFrames, FFmpeg, and FFprobe render worker.
 - A local web app for creating jobs, watching graph progress, and reviewing the MP4.
-- Four bundled CC0 soundtracks selected to fit the story, with an explicit silence option and support for user-supplied licensed audio and media.
+- A new score composed for each film by default, plus an optional four-track CC0 library, user-supplied licensed audio, and a no-music option.
 
 Generated films, source captures, credentials, research logs, local job directories, and user-supplied music are excluded from version control. The four bundled CC0 tracks and their provenance are committed under `harness/media/`.
 
@@ -34,8 +34,10 @@ npx hyperframes browser ensure
 cd ..
 
 export OPENROUTER_API_KEY=your_key
-# Optional: use your own tracks instead of the bundled CC0 soundtrack library.
-export FILM_AUDIO_DIR=/absolute/path/to/licensed-audio
+# Optional: use your own licensed tracks instead of the original-score default.
+# export FILM_AUDIO_DIR=/absolute/path/to/licensed-audio
+# Optional: use the bundled CC0 library instead of creating a score.
+# export FILM_MUSIC_MODE=library
 # Optional: omit background music. The web app offers this choice in its form.
 # export FILM_MUSIC_MODE=silent
 # Optional: a flat directory of licensed images, video, and audio to stage as local inputs.
@@ -46,7 +48,7 @@ node harness/graph/run.mjs https://example.com https://github.com/owner/reposito
 
 For the local browser UI, run `npm run dev --prefix web` after installing the harness dependencies and setting the same environment variables. Open `http://127.0.0.1:4174`. See [web/README.md](web/README.md) for the UI's current scope.
 
-The default `FILM_MUSIC_MODE=auto` selects one of the bundled CC0 tracks, so a fresh clone needs no audio setup. `FILM_AUDIO_DIR` replaces that catalog with your licensed MP3, M4A, OGG, or WAV files. Set `FILM_MUSIC_MODE=silent` only when you want no background music. If a composition accidentally omits its chosen soundtrack, the graph adds the selected track to the MP4 with short fades as a deterministic fallback.
+The default `FILM_MUSIC_MODE=original` asks the composition agent to write and render a new score specifically for the film. It uses local code and FFmpeg, with no additional music provider or music key. Set `FILM_MUSIC_MODE=library` to select from the bundled CC0 tracks; `FILM_AUDIO_DIR` supplies your own licensed MP3, M4A, OGG, or WAV catalog and selects library mode automatically in the CLI. Set `FILM_MUSIC_MODE=silent` to omit background music. The graph verifies the generated score's duration and audibility before rendering. If a composition omits its selected soundtrack, the graph adds it to the MP4 with short fades as a deterministic fallback.
 
 ## Square motion-studio run
 

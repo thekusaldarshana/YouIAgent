@@ -2,7 +2,7 @@ const form = document.querySelector('#source-form');
 const feedback = document.querySelector('#form-feedback');
 const submit = document.querySelector('#submit-job');
 const labels = { capture: 'stage-capture', prepare: 'stage-capture', plan: 'stage-plan', planGate: 'stage-plan', repairPlan: 'stage-plan', audio: 'stage-compose', compose: 'stage-compose', check: 'stage-compose', repairComposition: 'stage-compose', render: 'stage-render' };
-const descriptions = { capture: 'Reading the website and repository', prepare: 'Building the source and design packet', plan: 'Finding the story', planGate: 'Checking source claims', repairPlan: 'Refining the plan', audio: 'Choosing the soundtrack', compose: 'Creating motion scenes', check: 'Checking the composition', repairComposition: 'Repairing the composition', render: 'Rendering the film' };
+const descriptions = { capture: 'Reading the website and repository', prepare: 'Building the source and design packet', plan: 'Finding the story and sound', planGate: 'Checking source claims', repairPlan: 'Refining the plan', audio: 'Preparing audio direction', compose: 'Creating motion and original music', check: 'Checking the composition and score', repairComposition: 'Repairing the composition', render: 'Rendering the film' };
 let pollTimer;
 
 function showJob(job) {
@@ -27,7 +27,7 @@ function showJob(job) {
     const credit = document.querySelector('#music-credit');
     credit.replaceChildren();
     if (job.music?.choice && job.music.choice !== 'none') {
-      credit.append(document.createTextNode(`Soundtrack: ${job.music.title || job.music.choice}${job.music.author ? ` by ${job.music.author}` : ''}${job.music.license ? ` · ${job.music.license}` : ' · Your own audio'}`));
+      credit.append(document.createTextNode(`Soundtrack: ${job.music.title || job.music.choice}${job.music.author ? ` by ${job.music.author}` : ''}${job.music.choice === 'original' ? ' · Created for this film' : job.music.license ? ` · ${job.music.license}` : ' · Your own audio'}`));
       if (job.music.sourceUrl) {
         const source = new URL(job.music.sourceUrl);
         if (source.protocol === 'https:' && source.hostname === 'opengameart.org') {

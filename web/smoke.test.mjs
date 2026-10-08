@@ -38,10 +38,10 @@ test('a clone serves the homepage and every frontend asset without local job dat
     }
     const homepage = await (await fetch(origin)).text();
     assert.match(homepage, /<select id="music-mode">/);
-    assert.match(homepage, /Choose a soundtrack for this story/);
+    assert.match(homepage, /Create original music for this film/);
     const invalid = await fetch(`${origin}/api/jobs`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ musicMode: 'broken' }) });
     assert.equal(invalid.status, 400);
-    assert.match((await invalid.json()).error, /Choose Auto soundtrack or Silence/);
+    assert.match((await invalid.json()).error, /Choose Original score/);
   } finally {
     if (child.exitCode === null && child.signalCode === null) {
       const exited = new Promise((resolve) => child.once('exit', resolve));

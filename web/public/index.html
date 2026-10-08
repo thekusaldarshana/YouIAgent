@@ -17,7 +17,7 @@
         <label for="website">Website URL</label><input id="website" type="url" placeholder="https://example.com" required />
         <label for="repository">Public GitHub repository</label><input id="repository" type="url" placeholder="https://github.com/owner/repo" required />
         <label for="goal">Creative goal</label><textarea id="goal" rows="3" placeholder="Create a short product launch film."></textarea>
-        <label for="music-mode">Soundtrack</label><select id="music-mode"><option value="auto">Choose a soundtrack for this story</option><option value="silent">No music</option></select><p class="field-note">Includes a small CC0 music library. Your own licensed tracks can be used through <code>FILM_AUDIO_DIR</code>.</p>
+        <label for="music-mode">Soundtrack</label><select id="music-mode"><option value="original">Create original music for this film</option><option value="library">Choose from the music library</option><option value="silent">No music</option></select><p class="field-note">The default score is composed for your film. The optional library includes CC0 tracks; <code>FILM_AUDIO_DIR</code> supplies your own licensed library.</p>
         <button id="submit-job" class="primary" type="submit">Make film <span>↗</span></button><p id="form-feedback" class="feedback" role="status" aria-live="polite">Runs on this computer with your configured Codex CLI and local render tools.</p>
       </div></form>
       <div class="panel pipeline"><div class="panel-top"><span>PRODUCTION</span><span>02 / 02</span></div><div class="panel-content">
