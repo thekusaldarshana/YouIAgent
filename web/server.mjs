@@ -48,7 +48,7 @@ async function startJob(input) {
   const stdout = await open(join(jobDir, 'web-run.stdout'), 'w');
   const stderr = await open(join(jobDir, 'web-run.stderr'), 'w');
   const child = spawn(process.execPath, [graphRunner, input.websiteUrl, input.repositoryUrl, input.goal], {
-    cwd: repoRoot, stdio: ['ignore', stdout.fd, stderr.fd], env: { ...process.env, FILM_JOB_DIR: jobDir },
+    cwd: repoRoot, stdio: ['ignore', stdout.fd, stderr.fd], env: { ...process.env, FILM_JOB_DIR: jobDir, FILM_MUSIC_MODE: input.musicMode },
   });
   active.add(id);
   const finish = async (error) => {
@@ -83,7 +83,9 @@ async function handle(req, res) {
     if (origin && ![`http://127.0.0.1:${port}`, `http://localhost:${port}`].includes(origin)) return sendJson(res, 403, { error: 'Local origin required.' });
     try {
       const body = await requestJson(req);
-      const input = { websiteUrl: validUrl(body.websiteUrl), repositoryUrl: validUrl(body.repositoryUrl, true), goal: String(body.goal || 'Create a short product launch film.').slice(0, 500) };
+      const musicMode = body.musicMode || 'auto';
+      if (!['auto', 'silent'].includes(musicMode)) throw new Error('Choose Auto soundtrack or Silence.');
+      const input = { websiteUrl: validUrl(body.websiteUrl), repositoryUrl: validUrl(body.repositoryUrl, true), goal: String(body.goal || 'Create a short product launch film.').slice(0, 500), musicMode };
       return sendJson(res, 202, await startJob(input));
     } catch (error) { return sendJson(res, 400, { error: error.message }); }
   }

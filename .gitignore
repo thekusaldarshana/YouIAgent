@@ -16,6 +16,7 @@
 !/harness/cli.mjs
 !/harness/runtime.test.mjs
 !/harness/motion/
+!/harness/media/
 !/harness/eval/
 !/harness/graph/
 !/harness/worker/
@@ -61,6 +62,7 @@
 *.mkv
 *.avi
 *.mp3
+!/harness/media/music/*.mp3
 *.m4a
 *.wav
 *.ogg

@@ -16,13 +16,13 @@ When asked to plan, write only:
 - `film-output/film-plan.md`: the creative premise, beats and timings, brand cues, source-backed claims, scene transitions, audio direction, and candidate share copy.
 - `film-output/plan-data.json`: valid JSON with `durationSeconds`, `musicChoice` (one of the choices in `film-audio/CATALOG.md`), `posterAtSeconds`, `claims` (array of `{ "claim": "...", "sourcePath": "...", "quote": "..." }`), and `scenes` (array of `{ "name": "...", "start": 0, "duration": 3 }`). Use paths relative to the workspace. Each `quote` must be an exact source excerpt; avoid claims the excerpt does not support. When `MOTION_PROFILE.md` says `motion-studio`, also write `bpm: 120` and an ordered 54-entry `beatMap` of `{ "beat": 1, "event": "..." }` objects.
 
-Music should have its own arc and fit the film. Pick from the provided local catalog after reading its character descriptions, or record `none` only if silence is a deliberate creative decision. Do not synthesize a generic repeating bed as a fallback. Keep SFX selective. The graph stages the chosen music and cue metadata after planning.
+Music should have its own arc and fit the film. Read the character descriptions in `film-audio/CATALOG.md` and choose one track that fits the story; when the catalog says the user chose silence, record `none`. Do not synthesize a generic repeating bed as a fallback. Keep SFX selective. The graph stages the chosen music and cue metadata after planning.
 
 Do not create a composition, run HyperFrames, render, or fetch external assets in this stage.
 
 ## Composition stage
 
-When asked to compose, read the approved plan, per-run `source-design.md`, `film-audio/SELECTED.md`, and prepared runtime/mechanics notes. Build `film-output/composition/index.html` and local assets. Use the current HyperFrames composition contract. The graph owns `hyperframes check`, snapshots, repair routing, final rendering, poster, and FFprobe. Do not run those commands yourself. Do not read every installed skill; the graph provides a concise runtime contract. Read targeted references only for a mechanic you actually need.
+When asked to compose, read the approved plan, per-run `source-design.md`, `film-audio/SELECTED.md`, and prepared runtime/mechanics notes. Place the selected music as a background track when one is listed, shaping its entrance and ending around the story. Build `film-output/composition/index.html` and local assets. Use the current HyperFrames composition contract. The graph owns `hyperframes check`, snapshots, repair routing, final rendering, poster, and FFprobe. Do not run those commands yourself. Do not read every installed skill; the graph provides a concise runtime contract. Read targeted references only for a mechanic you actually need.
 
 Use local frozen assets. `film-motion/mechanics.js` offers optional SVG stroke, status reveal, slide handoff, and music envelope helpers; choose mechanics because they serve this story. The graph may add more tested primitives later. Do not choose a story to fit the helpers.
 

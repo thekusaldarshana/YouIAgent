@@ -11,6 +11,7 @@ import { stageAudioCatalog, stageSelectedAudio } from './audio.mjs';
 import { stageInputAssets } from './assets.mjs';
 import { fixUniqueContrastLiterals } from './contrast-fix.mjs';
 import { compositionFingerprint } from '../worker/fingerprint.mjs';
+import { addMissingMusicBed } from '../worker/audio-level.mjs';
 import { motionPlanIssues, renderProfileIssues, resolveFilmProfile } from './motion-profile.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -36,6 +37,7 @@ async function planCacheKey(workspace, manifest) {
   const raw = await readFile(join(workspace, 'film-output', 'plan-data.json'), 'utf8');
   const plan = JSON.parse(raw);
   const hash = createHash('sha256').update(raw).update(manifest.website?.capturedSourceSha256 || '').update(manifest.repository?.commit || '');
+  hash.update(await readFile(join(workspace, 'film-audio', 'catalog.json')));
   for (const path of [...new Set((plan.claims || []).map((item) => item.sourcePath))].sort()) {
     hash.update(String(path)).update('\0');
     try { hash.update(await readFile(inWorkspace(workspace, path))); }
@@ -58,6 +60,8 @@ export async function inspectPlan(workspace, evaluator = evaluateClaim, profile 
     if (Math.abs(Math.max(...ordered.map((scene) => scene.start + scene.duration)) - data.durationSeconds) > 0.2) issues.push('Scenes must cover the declared duration.');
   }
   if (!Array.isArray(data.claims) || !data.claims.length) issues.push('At least one source-backed claim is required.');
+  const audioCatalog = JSON.parse(await readFile(join(workspace, 'film-audio', 'catalog.json'), 'utf8'));
+  if (audioCatalog.sourceKind === 'none' ? data.musicChoice !== 'none' : !audioCatalog.tracks.some((track) => track.id === data.musicChoice)) issues.push(`musicChoice must be one of: ${audioCatalog.sourceKind === 'none' ? 'none' : audioCatalog.tracks.map((track) => track.id).join(', ')}.`);
   issues.push(...motionPlanIssues(data, profile));
   const evaluated = [];
   if (Array.isArray(data.claims)) for (const item of data.claims) {
@@ -169,7 +173,7 @@ export function createFilmGraph({ capture = captureSources, prep = prepare, agen
       const profile = resolveFilmProfile(state.input.profile);
       if (!(state.input.resumePlan && (await stat(join(state.workspace, 'PROJECT_EVIDENCE.md')).catch(() => null))?.isFile())) await prep(state.jobDir);
       await stageGraphSkill(state.workspace);
-      await stageAudioCatalog(state.workspace, state.input.audioDir);
+      await stageAudioCatalog(state.workspace, state.input.audioDir, state.input.musicMode || 'auto');
       await stageInputAssets(state.workspace, state.input.assetDir);
       await writeFile(join(state.workspace, 'MOTION_PROFILE.md'), `# Active film profile\n\n${profile.id}\n\n${profile.planningInstructions}\n\n${profile.compositionInstructions}\n`);
       return {};
@@ -236,7 +240,18 @@ export function createFilmGraph({ capture = captureSources, prep = prepare, agen
       const result = await run(process.execPath, [join(HARNESS, 'worker', 'render.mjs'), state.workspace, `--checked-report=${join(state.jobDir, 'checked-composition.json')}`], state.workspace, join(state.jobDir, 'worker'), 20 * 60_000);
       if (result.code !== 0) throw new Error(`Render worker failed (${result.code}): ${result.error.slice(-1500)}`);
       const output = inWorkspace(state.workspace, data.output);
-      const report = JSON.parse(await readFile(join(dirname(output), 'render-report.json'), 'utf8'));
+      const reportPath = join(dirname(output), 'render-report.json');
+      const report = JSON.parse(await readFile(reportPath, 'utf8'));
+      if (state.input.musicMode !== 'silent' && !report.hasAudio) {
+        if (!state.audio?.destination) throw new Error('Selected music is missing from the job.');
+        const fallback = await addMissingMusicBed(output, state.audio.destination, report.durationSeconds, FFMPEG_PATH, process.env.FFPROBE_BIN || 'ffprobe');
+        report.audioLevel = fallback.audioLevel;
+        report.durationSeconds = fallback.durationSeconds;
+        report.bytes = fallback.bytes;
+        report.hasAudio = true;
+        report.audioFallback = true;
+        await writeFile(reportPath, JSON.stringify(report, null, 2));
+      }
       const profileIssues = renderProfileIssues(report, resolveFilmProfile(state.input.profile));
       if (profileIssues.length) throw new Error(profileIssues.join(' '));
       return { render: report };
@@ -255,6 +270,6 @@ export async function runFilm(input, { jobDir = join(HARNESS, '..', '.youiagent'
   const startedAt = new Date().toISOString();
   await writeFile(join(jobDir, 'graph-input.json'), JSON.stringify({ ...input, audioDir: input.audioDir ? '[local user-supplied audio directory]' : null }, null, 2));
   const result = await graph.invoke({ jobDir, input }, { recursionLimit: 30 });
-  await writeFile(join(jobDir, 'graph-report.json'), JSON.stringify({ startedAt, finishedAt: new Date().toISOString(), manifest: result.manifest, plan: result.plan?.data, claimDecisions: result.plan?.evaluated, planRepairs: result.planRepairs, compositionRepairs: result.compositionRepairs, render: result.render }, null, 2));
+  await writeFile(join(jobDir, 'graph-report.json'), JSON.stringify({ startedAt, finishedAt: new Date().toISOString(), manifest: result.manifest, plan: result.plan?.data, music: result.audio ? { choice: result.audio.choice, title: result.audio.title || null, author: result.audio.author || null, license: result.audio.license || null, sourceUrl: result.audio.sourceUrl || null } : null, claimDecisions: result.plan?.evaluated, planRepairs: result.planRepairs, compositionRepairs: result.compositionRepairs, render: result.render }, null, 2));
   return { jobDir, result };
 }

@@ -11,9 +11,9 @@ Version: **0.1.0**.
 - A source-quote claim gate using OpenRouter’s Jev Decisions API.
 - A deterministic HyperFrames, FFmpeg, and FFprobe render worker.
 - A local web app for creating jobs, watching graph progress, and reviewing the MP4.
-- Optional, user-supplied licensed audio and media. Without `FILM_AUDIO_DIR`, the film is silent.
+- Four bundled CC0 soundtracks selected to fit the story, with an explicit silence option and support for user-supplied licensed audio and media.
 
-Generated films, source captures, credentials, research logs, local job directories, and third-party music are excluded from version control.
+Generated films, source captures, credentials, research logs, local job directories, and user-supplied music are excluded from version control. The four bundled CC0 tracks and their provenance are committed under `harness/media/`.
 
 ## Prerequisites
 
@@ -34,8 +34,10 @@ npx hyperframes browser ensure
 cd ..
 
 export OPENROUTER_API_KEY=your_key
-# Optional: a directory containing only tracks you are licensed to distribute.
+# Optional: use your own tracks instead of the bundled CC0 soundtrack library.
 export FILM_AUDIO_DIR=/absolute/path/to/licensed-audio
+# Optional: omit background music. The web app offers this choice in its form.
+# export FILM_MUSIC_MODE=silent
 # Optional: a flat directory of licensed images, video, and audio to stage as local inputs.
 export FILM_ASSET_DIR=/absolute/path/to/licensed-media
 
@@ -43,6 +45,8 @@ node harness/graph/run.mjs https://example.com https://github.com/owner/reposito
 ```
 
 For the local browser UI, run `npm run dev --prefix web` after installing the harness dependencies and setting the same environment variables. Open `http://127.0.0.1:4174`. See [web/README.md](web/README.md) for the UI's current scope.
+
+The default `FILM_MUSIC_MODE=auto` selects one of the bundled CC0 tracks, so a fresh clone needs no audio setup. `FILM_AUDIO_DIR` replaces that catalog with your licensed MP3, M4A, OGG, or WAV files. Set `FILM_MUSIC_MODE=silent` only when you want no background music. If a composition accidentally omits its chosen soundtrack, the graph adds the selected track to the MP4 with short fades as a deterministic fallback.
 
 ## Square motion-studio run
 
@@ -67,6 +71,7 @@ Use `FILM_JOB_DIR`, `FILM_RESUME_PLAN=1`, and `FILM_RESUME_COMPOSITION=1` to res
 
 ```bash
 npm run check --prefix harness
+npm run check --prefix web
 ```
 
 The tests are offline and use fixtures. They do not invoke Codex, OpenRouter, Context.dev, a browser render, or a creative model.

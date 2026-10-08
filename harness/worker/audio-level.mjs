@@ -1,5 +1,5 @@
 import { execFile } from 'node:child_process';
-import { rename } from 'node:fs/promises';
+import { rename, stat } from 'node:fs/promises';
 import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
@@ -38,4 +38,23 @@ export async function normalizeMusicOnlyOutput(path, ffmpegBin = 'ffmpeg') {
   if (after.truePeakDbfs > -2.5) throw new Error(`Normalized audio peak too high: ${after.truePeakDbfs} dBFS`);
   await rename(temp, path);
   return { before, after, gainDb, normalized: true };
+}
+
+export async function addMissingMusicBed(path, musicPath, durationSeconds, ffmpegBin = 'ffmpeg', ffprobeBin = 'ffprobe') {
+  if (!Number.isFinite(durationSeconds) || durationSeconds <= 1) throw new Error('Rendered film duration is invalid for music fallback.');
+  const temp = path.replace(/\.mp4$/i, '.music-bed.tmp.mp4');
+  const fadeOut = Math.max(0, durationSeconds - 1.2);
+  await execFileAsync(ffmpegBin, [
+    '-hide_banner', '-loglevel', 'error', '-y', '-i', path, '-stream_loop', '-1', '-i', musicPath,
+    '-map', '0:v:0', '-map', '1:a:0', '-t', String(durationSeconds), '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k',
+    '-af', `afade=t=in:st=0:d=0.4,afade=t=out:st=${fadeOut.toFixed(3)}:d=1.2`, '-movflags', '+faststart', temp,
+  ], { maxBuffer: 10 * 1024 * 1024 });
+  const { stdout } = await execFileAsync(ffprobeBin, ['-v', 'error', '-show_entries', 'stream=codec_type', '-of', 'json', temp]);
+  if (!JSON.parse(stdout).streams?.some((stream) => stream.codec_type === 'audio')) throw new Error('Music fallback did not produce an audio stream.');
+  await rename(temp, path);
+  const audioLevel = await normalizeMusicOnlyOutput(path, ffmpegBin);
+  const finalProbe = await execFileAsync(ffprobeBin, ['-v', 'error', '-show_entries', 'format=duration:stream=codec_type', '-of', 'json', path]);
+  const media = JSON.parse(finalProbe.stdout);
+  if (!media.streams?.some((stream) => stream.codec_type === 'audio')) throw new Error('Normalized music fallback has no audio stream.');
+  return { audioLevel, durationSeconds: Number(media.format.duration), bytes: (await stat(path)).size };
 }

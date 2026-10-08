@@ -14,5 +14,5 @@ export async function readJobStatus(jobDir, running = false) {
   if (latest?.state === 'start') stages[latest.node] = 'running';
   if (latest?.state === 'failed') stages[latest.node] = 'failed';
   const state = report ? 'complete' : job.state === 'failed' ? 'failed' : running ? 'running' : 'interrupted';
-  return { id: job.id, input: job.input, createdAt: job.createdAt, finishedAt: job.finishedAt || null, state, stage: latest?.node || 'starting', stages, error: job.error || (latest?.state === 'failed' ? latest.error : null), filmReady: Boolean(report?.render?.output), render: report?.render ? { durationSeconds: report.render.durationSeconds, width: report.render.video?.width, height: report.render.video?.height } : null };
+  return { id: job.id, input: job.input, createdAt: job.createdAt, finishedAt: job.finishedAt || null, state, stage: latest?.node || 'starting', stages, error: job.error || (latest?.state === 'failed' ? latest.error : null), filmReady: Boolean(report?.render?.output), music: report?.music || null, musicChoice: report?.plan?.musicChoice || null, render: report?.render ? { durationSeconds: report.render.durationSeconds, width: report.render.video?.width, height: report.render.video?.height, hasAudio: report.render.hasAudio, audioFallback: report.render.audioFallback || false } : null };
 }

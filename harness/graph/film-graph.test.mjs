@@ -5,6 +5,24 @@ import { join } from 'node:path';
 import test from 'node:test';
 import { createFilmGraph, inspectPlan, runFilm } from './film-graph.mjs';
 import { claimRequest, evaluateClaim } from '../eval/claim-jev.mjs';
+import { stageAudioCatalog } from './audio.mjs';
+
+test('automatic soundtrack plan cannot quietly select silence', async () => {
+  const workspace = await mkdtemp(join(tmpdir(), 'film-plan-audio-test-'));
+  try {
+    await mkdir(join(workspace, 'source-repo'), { recursive: true });
+    await mkdir(join(workspace, 'film-output'), { recursive: true });
+    await writeFile(join(workspace, 'source-repo', 'README.md'), 'Source fact.');
+    await stageAudioCatalog(workspace);
+    const plan = { durationSeconds: 18, posterAtSeconds: 17, musicChoice: 'none', claims: [{ claim: 'Source fact', quote: 'Source fact.', sourcePath: 'source-repo/README.md' }], scenes: [{ name: 'a', start: 0, duration: 6 }, { name: 'b', start: 6, duration: 6 }, { name: 'c', start: 12, duration: 6 }] };
+    await writeFile(join(workspace, 'film-output', 'plan-data.json'), JSON.stringify(plan));
+    const evaluate = async () => ({ probabilitySupported: 1 });
+    assert.match((await inspectPlan(workspace, evaluate)).issues.join(' '), /musicChoice must be one of/);
+    plan.musicChoice = 'airy';
+    await writeFile(join(workspace, 'film-output', 'plan-data.json'), JSON.stringify(plan));
+    assert.equal((await inspectPlan(workspace, evaluate)).passed, true);
+  } finally { await rm(workspace, { recursive: true, force: true }); }
+});
 
 test('Jev claim request uses a single typed supported proposition', async () => {
   const request = claimRequest('A', 'B', 'README.md');
@@ -59,7 +77,7 @@ test('LangGraph executes deterministic gates and one repair before rendering', a
         return { code: 0, output: '', error: '' };
       },
     });
-    const { result } = await runFilm({ websiteUrl: 'https://example.com', repositoryUrl: 'https://github.com/example/repo', audioDir: null, model: 'fixture', effort: 'high' }, { jobDir, graph });
+    const { result } = await runFilm({ websiteUrl: 'https://example.com', repositoryUrl: 'https://github.com/example/repo', audioDir: null, musicMode: 'silent', model: 'fixture', effort: 'high' }, { jobDir, graph });
     assert.equal(result.render.durationSeconds, 18);
     assert.equal(result.compositionRepairs, 1);
     assert.deepEqual(calls, ['plan', 'compose', 'repair-composition-0']);
