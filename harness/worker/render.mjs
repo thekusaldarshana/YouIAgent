@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 import { execFile, spawn } from 'node:child_process';
 import { readFile, stat, writeFile } from 'node:fs/promises';
-import { dirname, isAbsolute, join, resolve } from 'node:path';
+import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { compositionFingerprint } from './fingerprint.mjs';
 import { normalizeMusicOnlyOutput } from './audio-level.mjs';
 
 const execFileAsync = promisify(execFile);
-const hyperframesBin = fileURLToPath(new URL('../node_modules/.bin/hyperframes', import.meta.url));
+const hyperframesBin = fileURLToPath(new URL('../node_modules/hyperframes/bin/hyperframes.mjs', import.meta.url));
 const ffmpegBin = process.env.FFMPEG_BIN || 'ffmpeg';
 const ffprobeBin = process.env.FFPROBE_BIN || 'ffprobe';
 
@@ -28,7 +28,8 @@ const handoff = JSON.parse(await readFile(handoffPath, 'utf8'));
 function withinWorkspace(value, label) {
   if (!value || isAbsolute(value) || value.split(/[\\/]/).includes('..')) throw new Error(`${label} must be a relative path inside the workspace.`);
   const path = resolve(workspace, value);
-  if (!path.startsWith(`${workspace}/`)) throw new Error(`${label} escapes the workspace.`);
+  const remainder = relative(workspace, path);
+  if (!remainder || remainder === '..' || remainder.startsWith(`..${sep}`) || isAbsolute(remainder)) throw new Error(`${label} escapes the workspace.`);
   return path;
 }
 
@@ -58,13 +59,13 @@ let checkSkippedBecauseHashMatched = false;
 if (checkedReportArg) {
   const attestation = JSON.parse(await readFile(resolve(checkedReportArg), 'utf8'));
   const hash = await compositionFingerprint(composition);
-  if (attestation.passed !== true || attestation.composition !== handoff.composition || attestation.sha256 !== hash) {
+  if (attestation.passed !== true || attestation.composition.replaceAll('\\', '/') !== handoff.composition.replaceAll('\\', '/') || attestation.sha256 !== hash) {
     throw new Error('Composition changed after its HyperFrames check; refusing to skip validation.');
   }
   checkSkippedBecauseHashMatched = true;
   timings.checkSeconds = 0;
-} else timings.checkSeconds = await run(hyperframesBin, ['check'], composition);
-timings.renderSeconds = await run(hyperframesBin, ['render', '--quality', 'looks', '--output', output], composition);
+} else timings.checkSeconds = await run(process.execPath, [hyperframesBin, 'check'], composition);
+timings.renderSeconds = await run(process.execPath, [hyperframesBin, 'render', '--quality', 'looks', '--output', output], composition);
 const preLevelProbe = await execFileAsync(ffprobeBin, ['-v', 'error', '-show_entries', 'stream=codec_type', '-of', 'json', output]);
 const hasRenderedAudio = JSON.parse(preLevelProbe.stdout).streams?.some((stream) => stream.codec_type === 'audio');
 const audioLevel = hasRenderedAudio ? await normalizeMusicOnlyOutput(output, ffmpegBin) : null;

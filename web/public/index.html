@@ -9,7 +9,7 @@
   <script src="/app.js" type="module"></script>
 </head>
 <body>
-  <header class="bar"><div class="brand"><span class="brand-mark">✳</span> __APP_NAME__ <span class="brand-divider">/</span> film studio</div><span class="badge">LOCAL PREVIEW</span></header>
+  <header class="bar"><div class="brand"><span class="brand-mark">✳</span> __APP_NAME__ <span class="brand-divider">/</span> film studio</div><div class="bar-actions"><a href="#past-creations">Past creations</a><span class="badge">LOCAL PREVIEW</span></div></header>
   <main>
     <section class="hero"><div class="eyebrow">SOURCE TO STORY TO FILM</div><h1>Show what<br /><em>you made.</em></h1><p>Give the agent a public site and repository. It reads the product, finds a story, checks its claims, and renders a film you can review.</p></section>
     <section class="form-grid">
@@ -17,8 +17,12 @@
         <label for="website">Website URL</label><input id="website" type="url" placeholder="https://example.com" required />
         <label for="repository">Public GitHub repository</label><input id="repository" type="url" placeholder="https://github.com/owner/repo" required />
         <label for="goal">Creative goal</label><textarea id="goal" rows="3" placeholder="Create a short product launch film."></textarea>
+        <label for="provider">Generation login</label><select id="provider"><option value="codex">Codex CLI · ChatGPT login</option><option value="claude">Claude Code CLI · Claude login</option></select>
+        <p id="provider-status" class="feedback" role="status">Checking local CLI logins…</p>
+        <p id="render-status" class="feedback" role="status">Checking FFmpeg and FFprobe…</p>
+        <label for="model">Model</label><input id="model" list="model-options" value="gpt-6-sol" autocomplete="off" placeholder="CLI default" /><datalist id="model-options"><option value="gpt-6-sol"></option><option value="gpt-6-astra"></option><option value="gpt-6-luna"></option></datalist>
         <label for="music-mode">Soundtrack</label><select id="music-mode"><option value="original">Create original music for this film</option><option value="library">Choose from the music library</option><option value="silent">No music</option></select><p class="field-note">The default score is composed for your film. The optional library includes CC0 tracks; <code>FILM_AUDIO_DIR</code> supplies your own licensed library.</p>
-        <button id="submit-job" class="primary" type="submit">Make film <span>↗</span></button><p id="form-feedback" class="feedback" role="status" aria-live="polite">Runs on this computer with your configured Codex CLI and local render tools.</p>
+        <button id="submit-job" class="primary" type="submit">Make film <span>↗</span></button><p id="form-feedback" class="feedback" role="status" aria-live="polite">Runs on this computer with the selected CLI login and local render tools.</p>
       </div></form>
       <div class="panel pipeline"><div class="panel-top"><span>PRODUCTION</span><span>02 / 02</span></div><div class="panel-content">
         <div class="pipeline-step"><span>01</span><div><strong>Read the source</strong><p>Site design, repository, and evidence.</p></div><b id="stage-capture">WAITING</b></div>
@@ -28,10 +32,14 @@
         <div class="boundary-note"><span>↳</span><p>This build is a local product preview. Hosted accounts, billing, and cloud execution are not connected.</p></div>
       </div></div>
     </section>
+    <section id="past-creations" class="library"><div class="section-top"><div><span class="eyebrow">SAVED ON THIS COMPUTER</span><h2>Past creations</h2></div><span id="library-count" class="library-count">Loading…</span></div><p class="section-intro">Open a film to watch, download, or continue it from a saved checkpoint.</p><div id="library-list" class="library-list" aria-live="polite"></div></section>
     <section id="job-result" class="result hidden" aria-live="polite"><div class="section-top"><div><span class="eyebrow">YOUR FILM</span><h2 id="job-heading">In production</h2></div><span id="job-state" class="state">RUNNING</span></div>
       <div id="job-warning" class="warning hidden"></div>
       <div class="result-grid"><div class="result-card"><span class="card-label">SOURCE</span><strong id="site-title">—</strong><p id="site-description">Reading the site and repository.</p></div><div class="result-card"><span class="card-label">CURRENT STEP</span><strong id="runner-message">Starting</strong><p id="runner-detail">This page updates as the graph progresses.</p></div></div>
-      <div id="film-wrap" class="film-wrap hidden"><video id="film" controls preload="metadata"></video><p id="music-credit" class="music-credit"></p><div class="artifacts"><a id="film-download" download="film.mp4">Download MP4 ↓</a><a id="poster-download" download="poster.jpg">Poster ↓</a><a id="manifest-link" download="source-manifest.json">Source record ↓</a></div></div>
+      <div class="progress-live"><div><span class="card-label">LIVE ACTIVITY</span><strong id="activity-line">Waiting for the first update</strong><p id="progress-elapsed">Elapsed 0:00</p></div><span id="progress-updated">Updates automatically</span></div>
+      <div id="resume-panel" class="resume-panel hidden"><div><strong>Continue this film</strong><p id="resume-detail">Saved work will be reused.</p></div><button id="resume-job" type="button">Resume from checkpoint ↗</button></div>
+      <div class="activity-history"><div class="section-top"><div><span class="eyebrow">RUN HISTORY</span><h3>What happened</h3></div></div><ol id="event-list"></ol></div>
+      <div id="film-wrap" class="film-wrap hidden"><video id="film" controls preload="metadata"></video><p id="film-audio-note" class="film-audio-note"></p><div class="artifacts"><a id="film-download" download="film.mp4">Download MP4 ↓</a><a id="poster-download" download="poster.jpg">Poster ↓</a><a id="manifest-link" download="source-manifest.json">Source record ↓</a></div></div>
     </section>
     <section class="cost"><div class="section-top"><div><span class="eyebrow">LOCAL FIRST</span><h2>See the work, then share it.</h2></div></div><p class="section-intro">Every job keeps its plan, captured source, composition, checks, and final export in a local workspace. Review the film and its claims before publishing. Generation time and cost vary by project and model.</p></section>
   </main>

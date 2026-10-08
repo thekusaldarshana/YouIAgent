@@ -1,6 +1,6 @@
 # YouIAgent
 
-YouIAgent is an experimental local pipeline that turns a public product website and public GitHub repository into a short, source-grounded HyperFrames film. A LangGraph state machine captures source material, prepares evidence, asks a locally authenticated Codex CLI to plan and compose the film, verifies claims, validates the composition, and renders an MP4.
+YouIAgent is an experimental local pipeline that turns a public product website and public GitHub repository into a short, source-grounded HyperFrames film. A LangGraph state machine captures source material, prepares evidence, asks a locally authenticated Codex or Claude Code CLI to plan and compose the film, verifies claims, validates the composition, and renders an MP4.
 
 Version: **0.1.0**.
 
@@ -19,7 +19,7 @@ Generated films, source captures, credentials, research logs, local job director
 
 - Node.js 22 or newer.
 - Git, FFmpeg, and FFprobe on `PATH`. Set `FFMPEG_BIN` and `FFPROBE_BIN` to override their locations.
-- A signed-in [Codex CLI](https://developers.openai.com/codex/cli/) available as `codex`. The graph invokes it for planning and composition.
+- A signed-in [Codex CLI](https://learn.chatgpt.com/docs/developer-commands?surface=cli) or [Claude Code CLI](https://code.claude.com/docs/en/cli-reference) available on `PATH`. The graph invokes the selected CLI for planning and composition.
 - `OPENROUTER_API_KEY` for the semantic claim gate used by the default `product` profile. The `motion-studio` profile uses exact local source-quote validation and does not need this key.
 - Public HTTP(S) website and public `github.com` repository URLs.
 
@@ -46,7 +46,7 @@ export FILM_ASSET_DIR=/absolute/path/to/licensed-media
 node harness/graph/run.mjs https://example.com https://github.com/owner/repository "Create a short product launch film."
 ```
 
-For the local browser UI, run `npm run dev --prefix web` after installing the harness dependencies and setting the same environment variables. Open `http://127.0.0.1:4174`. See [web/README.md](web/README.md) for the UI's current scope.
+For the local browser UI, run `npm run dev --prefix web` after installing the harness dependencies. Open `http://127.0.0.1:4174`, then choose your signed-in CLI and model. Web jobs use exact source-quote validation when `OPENROUTER_API_KEY` is absent. Failed jobs with saved checkpoints can be resumed from the same job page; the UI shows stage history, validation findings, and live activity. See [web/README.md](web/README.md) for the UI's current scope.
 
 The default `FILM_MUSIC_MODE=original` asks the composition agent to write and render a new score specifically for the film. It uses local code and FFmpeg, with no additional music provider or music key. Set `FILM_MUSIC_MODE=library` to select from the bundled CC0 tracks; `FILM_AUDIO_DIR` supplies your own licensed MP3, M4A, OGG, or WAV catalog and selects library mode automatically in the CLI. Set `FILM_MUSIC_MODE=silent` to omit background music. The graph verifies the generated score's duration and audibility before rendering. If a composition omits its selected soundtrack, the graph adds it to the MP4 with short fades as a deterministic fallback.
 

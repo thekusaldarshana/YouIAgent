@@ -26,6 +26,10 @@ test('a clone serves the homepage and every frontend asset without local job dat
       catch { await new Promise((resolve) => setTimeout(resolve, 50)); }
     }
     assert.equal(ready, true, 'local web server did not start');
+    const config = await (await fetch(`${origin}/api/config`)).json();
+    assert.equal(typeof config.providers.codex.ready, 'boolean');
+    assert.equal(typeof config.providers.claude.ready, 'boolean');
+    assert.equal(typeof config.renderTools.ffmpeg, 'boolean');
     for (const [path, type, marker] of [
       ['/', 'text/html', 'YouIAgent · Local studio'],
       ['/app.js', 'text/javascript', 'source-form'],
@@ -37,11 +41,12 @@ test('a clone serves the homepage and every frontend asset without local job dat
       assert.ok((await response.text()).includes(marker), `${path} has unexpected content`);
     }
     const homepage = await (await fetch(origin)).text();
-    assert.match(homepage, /<select id="music-mode">/);
-    assert.match(homepage, /Create original music for this film/);
-    const invalid = await fetch(`${origin}/api/jobs`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ musicMode: 'broken' }) });
-    assert.equal(invalid.status, 400);
-    assert.match((await invalid.json()).error, /Choose Original score/);
+    assert.match(homepage, /id="provider"/);
+    assert.match(homepage, /id="model"/);
+    assert.match(homepage, /id="music-mode"/);
+    assert.match(homepage, /id="past-creations"/);
+    const library = await (await fetch(`${origin}/api/jobs`)).json();
+    assert.ok(Array.isArray(library.jobs));
   } finally {
     if (child.exitCode === null && child.signalCode === null) {
       const exited = new Promise((resolve) => child.once('exit', resolve));

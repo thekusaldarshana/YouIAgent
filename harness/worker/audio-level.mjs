@@ -1,8 +1,20 @@
 import { execFile } from 'node:child_process';
-import { rename, stat } from 'node:fs/promises';
+import { copyFile, stat, unlink } from 'node:fs/promises';
 import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
+
+async function replaceWithBackup(path, replacement) {
+  const backup = path.replace(/\.mp4$/i, '.before-audio.tmp.mp4');
+  await copyFile(path, backup);
+  try {
+    await copyFile(replacement, path);
+  } catch (error) {
+    await copyFile(backup, path);
+    throw error;
+  }
+  await Promise.all([unlink(replacement), unlink(backup)]);
+}
 
 export function parseEbur128(stderr) {
   const summary = stderr.slice(stderr.lastIndexOf('Summary:'));
@@ -36,7 +48,7 @@ export async function normalizeMusicOnlyOutput(path, ffmpegBin = 'ffmpeg') {
   ], { maxBuffer: 10 * 1024 * 1024 });
   const after = await measure(ffmpegBin, temp);
   if (after.truePeakDbfs > -2.5) throw new Error(`Normalized audio peak too high: ${after.truePeakDbfs} dBFS`);
-  await rename(temp, path);
+  await replaceWithBackup(path, temp);
   return { before, after, gainDb, normalized: true };
 }
 
@@ -51,7 +63,7 @@ export async function addMissingMusicBed(path, musicPath, durationSeconds, ffmpe
   ], { maxBuffer: 10 * 1024 * 1024 });
   const { stdout } = await execFileAsync(ffprobeBin, ['-v', 'error', '-show_entries', 'stream=codec_type', '-of', 'json', temp]);
   if (!JSON.parse(stdout).streams?.some((stream) => stream.codec_type === 'audio')) throw new Error('Music fallback did not produce an audio stream.');
-  await rename(temp, path);
+  await replaceWithBackup(path, temp);
   const audioLevel = await normalizeMusicOnlyOutput(path, ffmpegBin);
   const finalProbe = await execFileAsync(ffprobeBin, ['-v', 'error', '-show_entries', 'format=duration:stream=codec_type', '-of', 'json', path]);
   const media = JSON.parse(finalProbe.stdout);

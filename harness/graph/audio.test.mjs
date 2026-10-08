@@ -14,7 +14,7 @@ test('optional library offers bundled music and stages a chosen track', async ()
     assert.equal(catalog.sourceKind, 'bundled');
     assert.match(await readFile(join(workspace, 'film-audio', 'CATALOG.md'), 'utf8'), /CC0 by CodeManu/);
     const selected = await stageSelectedAudio(workspace, null, 'magic-space');
-    assert.match(selected.destination, /composition\/assets\/music\/magic-space\.mp3$/);
+    assert.match(selected.destination.replaceAll('\\', '/'), /composition\/assets\/music\/magic-space\.mp3$/);
     assert.ok((await readFile(selected.destination)).length > 100_000);
     await assert.rejects(stageSelectedAudio(workspace, null, 'none'), /soundtrack was requested/);
   } finally { await rm(workspace, { recursive: true, force: true }); }
@@ -27,7 +27,7 @@ test('default soundtrack mode requires a new score inside this job', async () =>
     const catalog = JSON.parse(await readFile(join(workspace, 'film-audio', 'catalog.json')));
     assert.equal(catalog.sourceKind, 'original');
     const selected = await stageSelectedAudio(workspace, null, 'original');
-    assert.match(selected.destination, /composition\/assets\/music\/original-score\.wav$/);
+    assert.match(selected.destination.replaceAll('\\', '/'), /composition\/assets\/music\/original-score\.wav$/);
     assert.match(await readFile(join(workspace, 'film-output', 'composition', 'score-kit.mjs'), 'utf8'), /class Score/);
     assert.match(await readFile(join(workspace, 'film-audio', 'SELECTED.md'), 'utf8'), /Compose a new soundtrack for this film/);
     await assert.rejects(validateOriginalScore(workspace, 20), /Original score is missing or empty/);
