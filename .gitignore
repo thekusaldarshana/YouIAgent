@@ -36,6 +36,7 @@
 !/web/server.mjs
 !/web/job-state.mjs
 !/web/job-state.test.mjs
+!/web/smoke.test.mjs
 !/web/package.json
 !/web/README.md
 !/web/public/

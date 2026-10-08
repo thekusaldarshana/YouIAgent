@@ -15,6 +15,8 @@ npm run dev --prefix web
 
 Open `http://127.0.0.1:4174`. The app uses the locally authenticated Codex CLI, Node 22+, Git, FFmpeg, and FFprobe described in the root README. `CONTEXT_DEV_API_KEY`, `FILM_MODEL`, `FILM_EFFORT`, `FILM_PROFILE`, `FILM_AUDIO_DIR`, `FILM_ASSET_DIR`, `FFMPEG_BIN`, and `FFPROBE_BIN` may be set in the server process environment. For `FILM_PROFILE=motion-studio`, the exact claim gate does not require OpenRouter.
 
+Open that address **in a browser on the same device running the server**. The GitHub repository URL is source code, not the running app. The local server binds to `127.0.0.1` and deliberately does not accept connections from other devices. If the terminal does not print `YouIAgent local web app: http://127.0.0.1:4174`, check the terminal error and whether another process already owns port 4174. A cloned device has no previous job files; remove an old `?job=<uuid>` query from the URL to start at the homepage.
+
 Jobs and output live in `.youiagent/jobs/<uuid>/`. A job URL has `?job=<uuid>` and can be reopened after the server restarts. A job interrupted by a server restart is reported as interrupted; resume that job through the CLI with the documented `FILM_JOB_DIR` options. The web app currently starts new jobs only.
 
 ## Limits
