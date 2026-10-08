@@ -74,6 +74,7 @@
 *.jpg
 *.jpeg
 *.png
+!web/public/*.png
 *.gif
 *.webp
 *.log
