@@ -104,14 +104,20 @@ async function timed(jobDir, node, work) {
   }
 }
 
-async function runCommand(name, args, cwd, logBase, timeoutMs = 30 * 60_000) {
+async function runCommand(name, args, cwd, logBase, timeoutMs = 30 * 60_000, options = {}) {
   const stdout = await open(`${logBase}.stdout`, 'w');
   const stderr = await open(`${logBase}.stderr`, 'w');
   try {
     const code = await new Promise((done, fail) => {
       const child = spawn(name, args, {
         cwd, stdio: ['ignore', stdout.fd, stderr.fd],
-        env: {
+        env: options.restrictedEnv ? {
+          PATH: process.env.PATH || '',
+          SystemRoot: process.env.SystemRoot,
+          TEMP: process.env.TEMP,
+          TMP: process.env.TMP,
+          HOME: process.env.HOME,
+        } : {
           ...process.env,
           CI: '1',
           PATH: `${join(HARNESS, 'node_modules', '.bin')}${delimiter}${process.env.PATH || ''}`,
@@ -151,7 +157,7 @@ function planPrompt(goal, profile) {
 }
 
 function composePrompt(profile) {
-  return `Read .agents/skills/film-graph/SKILL.md and execute only its COMPOSITION stage. The approved plan and audio direction are ready. If film-audio/SELECTED.md calls for an original score, create a new score for this film now; no library track has been staged. ${profile.compositionInstructions} Create a distinctive seek-safe HyperFrames composition, render handoff, and share copy. Use the captured site design. Do not run HyperFrames check/snapshot/render or fetch anything; the graph does that.`;
+  return `Read .agents/skills/film-graph/SKILL.md and execute only its COMPOSITION stage. The approved plan and audio direction are ready. If film-audio/SELECTED.md calls for an original score, write make-score.mjs for this film now; the graph will execute it. ${profile.compositionInstructions} Create a distinctive seek-safe HyperFrames composition, render handoff, and share copy. Use the captured site design. Do not run the score script, HyperFrames check/snapshot/render, or fetch anything; the graph does that.`;
 }
 
 function repairPrompt(issues) {
@@ -211,7 +217,19 @@ export function createFilmGraph({ capture = captureSources, prep = prepare, agen
       let audioError = null;
       if (state.audio?.choice === 'original') {
         try { await validateOriginalScore(state.workspace, state.plan.data.durationSeconds, process.env.FFPROBE_BIN || 'ffprobe', FFMPEG_PATH); }
-        catch (error) { audioError = error.message; }
+        catch (initialError) {
+          const script = join(composition, 'make-score.mjs');
+          if ((await stat(script).catch(() => null))?.isFile()) {
+            const [major, minor] = process.versions.node.split('.').map(Number);
+            const permissionFlag = major > 22 || (major === 22 && minor >= 13) ? '--permission' : '--experimental-permission';
+            const scoreResult = await run(process.execPath, [permissionFlag, `--allow-fs-read=${composition}`, `--allow-fs-write=${join(composition, 'assets', 'music')}`, script], composition, join(state.jobDir, `score-${state.compositionRepairs || 0}`), 90_000, { restrictedEnv: true });
+            if (scoreResult.code !== 0) audioError = `Original score script failed (${scoreResult.code}): ${(scoreResult.error || scoreResult.output).trim().slice(-1200)}`;
+            else {
+              try { await validateOriginalScore(state.workspace, state.plan.data.durationSeconds, process.env.FFPROBE_BIN || 'ffprobe', FFMPEG_PATH); }
+              catch (error) { audioError = error.message; }
+            }
+          } else audioError = `${initialError.message} The composition also lacks make-score.mjs.`;
+        }
       }
       let result = audioError ? { code: 1, output: '', error: audioError } : await run(process.execPath, [HYPERFRAMES, 'check', '--json'], composition, logBase, 3 * 60_000);
       let autoFixes = [];
@@ -226,14 +244,14 @@ export function createFilmGraph({ capture = captureSources, prep = prepare, agen
           }
         }
       }
-      const findings = Object.values(parsed || {}).flatMap((section) => Array.isArray(section?.findings) ? section.findings : []).filter((item) => item.severity === 'error').map((item) => `${item.message}${item.fixHint ? ` Fix: ${item.fixHint}` : ''}`);
+      const findings = [...(audioError ? [audioError] : []), ...Object.values(parsed || {}).flatMap((section) => Array.isArray(section?.findings) ? section.findings : []).filter((item) => item.severity === 'error').map((item) => `${item.message}${item.fixHint ? ` Fix: ${item.fixHint}` : ''}`)];
       const check = { passed: result.code === 0, code: result.code, autoFixes, findings, output: result.output.slice(-20_000), error: result.error.slice(-5_000) };
       await writeFile(join(state.jobDir, 'check-result.json'), JSON.stringify(check, null, 2));
       if (check.passed) await writeFile(join(state.jobDir, 'checked-composition.json'), JSON.stringify({ passed: true, composition: relative(state.workspace, composition).split(sep).join('/'), sha256: await compositionFingerprint(composition), checkedAt: new Date().toISOString() }, null, 2));
       return { check };
     }))
     .addNode('repairComposition', async (state) => timed(state.jobDir, 'repairComposition', async () => {
-      if ((state.compositionRepairs || 0) >= 2) throw new Error('Composition failed after two bounded repairs.');
+      if ((state.compositionRepairs || 0) >= 2) throw new Error(`Composition failed after two bounded repairs: ${state.check.findings?.[0] || state.check.error || 'see check-result.json'}`);
       await agent(state.workspace, state.jobDir, `repair-composition-${state.compositionRepairs || 0}`, repairPrompt(state.check.findings?.length ? state.check.findings : [state.check.error, state.check.output]), state.input.model, state.input.effort, state.input.provider);
       return { compositionRepairs: (state.compositionRepairs || 0) + 1 };
     }))
