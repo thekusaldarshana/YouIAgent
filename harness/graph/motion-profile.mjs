@@ -17,7 +17,7 @@ export const MOTION_STUDIO_PROFILE = Object.freeze({
     'Design a 1440×1440 motion-studio launch film at 120 BPM with 54 explicitly mapped beats.',
     'Make it feel like one continuous 2D take: carry a small set of forms, typography, and image masks across scene boundaries through transformations, camera moves, pushes, masks, and shape changes.',
     'Use a cursor only when it explains a direct interaction. Avoid fades, blur-ins, 3D flips, particles, generic gradients, and static holds longer than one beat.',
-    'Use only local files from film-inputs/ and the selected local music. When no music is supplied, plan deliberate silence and retain the beat map as a motion cadence.',
+    'Use only local files from film-inputs/ and the selected local music. When no music is supplied, the renderer creates an original instrumental score; align the beat map with that music arc.',
   ].join(' '),
   compositionInstructions: [
     'Build a square 1440×1440 HyperFrames composition with one seek-safe timeline. Compute state from time; avoid CSS transitions, timers, and accumulated animation state.',

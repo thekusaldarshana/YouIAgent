@@ -17,14 +17,14 @@ export async function stageAudioCatalog(workspace, audioDir = null) {
   })).filter((track) => track.id).sort((a, b) => a.id.localeCompare(b.id));
   if (new Set(tracks.map((track) => track.id)).size !== tracks.length) throw new Error('Audio filenames produce duplicate catalog IDs. Rename one file.');
   await writeFile(join(target, 'catalog.json'), JSON.stringify({ source: audioDir ? 'user-supplied directory' : 'none', tracks }, null, 2));
-  const lines = ['# Available local music for this film', '', 'Choose one ID in `plan-data.json` or `none` for deliberate silence.', 'Use only audio you are licensed to copy and distribute. The final film needs a listening review.', '', ...(tracks.length ? tracks.map((track) => `- ${track.id}: ${track.file}`) : ['- No audio catalog was supplied; choose `none`.']), ''];
+  const lines = ['# Available local music for this film', '', 'Choose one ID in `plan-data.json`, or `none` to have the renderer compose an original local instrumental score.', 'Use only audio you are licensed to copy and distribute. The final film needs a listening review.', '', ...(tracks.length ? tracks.map((track) => `- ${track.id}: ${track.file}`) : ['- No local tracks were supplied; choose `none` for the automatic original score.']), ''];
   await writeFile(join(target, 'CATALOG.md'), lines.join('\n'));
   return { tracks: tracks.map((track) => track.id) };
 }
 
 export async function stageSelectedAudio(workspace, audioDir, choice) {
   if (choice === 'none') {
-    await writeFile(join(workspace, 'film-audio', 'SELECTED.md'), '# Music selection\n\nDeliberate silence. Add SFX only when the plan calls for them.\n');
+    await writeFile(join(workspace, 'film-audio', 'SELECTED.md'), '# Music selection\n\nThe renderer will compose an original instrumental score from the film plan and scene timings. Leave the composition audio lane empty.\n');
     return { choice, source: null };
   }
   const catalog = JSON.parse(await readFile(join(workspace, 'film-audio', 'catalog.json'), 'utf8'));

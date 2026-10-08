@@ -65,5 +65,8 @@ test('LangGraph executes deterministic gates and one repair before rendering', a
     assert.deepEqual(calls, ['plan', 'compose', 'repair-composition-0']);
     assert.equal(checks, 2);
     assert.match(await readFile(join(jobDir, 'graph-events.jsonl'), 'utf8'), /"node":"render"/);
+    await runFilm({ websiteUrl: 'https://example.com', repositoryUrl: 'https://github.com/example/repo', audioDir: null, model: 'fixture', effort: 'high', resumePlan: true, resumeComposition: true }, { jobDir, graph });
+    assert.deepEqual(calls, ['plan', 'compose', 'repair-composition-0'], 'resuming must not call either AI stage again');
+    assert.equal(checks, 3, 'resuming rechecks the saved composition');
   } finally { await rm(root, { recursive: true, force: true }); }
 });

@@ -16,7 +16,7 @@ When asked to plan, write only:
 - `film-output/film-plan.md`: the creative premise, beats and timings, brand cues, source-backed claims, scene transitions, audio direction, and candidate share copy.
 - `film-output/plan-data.json`: valid JSON with `durationSeconds`, `musicChoice` (one of the choices in `film-audio/CATALOG.md`), `posterAtSeconds`, `claims` (array of `{ "claim": "...", "sourcePath": "...", "quote": "..." }`), and `scenes` (array of `{ "name": "...", "start": 0, "duration": 3 }`). Use paths relative to the workspace. Each `quote` must be an exact source excerpt; avoid claims the excerpt does not support. When `MOTION_PROFILE.md` says `motion-studio`, also write `bpm: 120` and an ordered 54-entry `beatMap` of `{ "beat": 1, "event": "..." }` objects.
 
-Music should have its own arc and fit the film. Pick from the provided local catalog after reading its character descriptions, or record `none` only if silence is a deliberate creative decision. Do not synthesize a generic repeating bed as a fallback. Keep SFX selective. The graph stages the chosen music and cue metadata after planning.
+Music should have its own arc and fit the film. Pick from the provided local catalog after reading its character descriptions. If no track fits or the catalog is empty, record `none`: the renderer will create an original instrumental score from the film plan and scene timings. Describe the intended audio arc in `film-plan.md` so the score follows the story. Keep SFX selective. The graph stages any chosen local music after planning.
 
 Do not create a composition, run HyperFrames, render, or fetch external assets in this stage.
 

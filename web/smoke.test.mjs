@@ -26,6 +26,10 @@ test('a clone serves the homepage and every frontend asset without local job dat
       catch { await new Promise((resolve) => setTimeout(resolve, 50)); }
     }
     assert.equal(ready, true, 'local web server did not start');
+    const config = await (await fetch(`${origin}/api/config`)).json();
+    assert.equal(typeof config.providers.codex.ready, 'boolean');
+    assert.equal(typeof config.providers.claude.ready, 'boolean');
+    assert.equal(typeof config.renderTools.ffmpeg, 'boolean');
     for (const [path, type, marker] of [
       ['/', 'text/html', 'YouIAgent · Local studio'],
       ['/app.js', 'text/javascript', 'source-form'],
@@ -36,6 +40,12 @@ test('a clone serves the homepage and every frontend asset without local job dat
       assert.match(response.headers.get('content-type') || '', new RegExp(type));
       assert.ok((await response.text()).includes(marker), `${path} has unexpected content`);
     }
+    const homepage = await (await fetch(origin)).text();
+    assert.match(homepage, /id="provider"/);
+    assert.match(homepage, /id="model"/);
+    assert.match(homepage, /id="past-creations"/);
+    const library = await (await fetch(`${origin}/api/jobs`)).json();
+    assert.ok(Array.isArray(library.jobs));
   } finally {
     if (child.exitCode === null && child.signalCode === null) {
       const exited = new Promise((resolve) => child.once('exit', resolve));

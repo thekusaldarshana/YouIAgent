@@ -6,7 +6,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "check": "node --check cli.mjs && node --check motion/mechanics.js && node --check graph/film-graph.mjs && node --check graph/audio.mjs && node --check graph/assets.mjs && node --check graph/motion-profile.mjs && node --check graph/run.mjs && node --check graph/contrast-fix.mjs && node --check worker/fingerprint.mjs && node --check worker/audio-level.mjs && node --check worker/render.mjs && node --check eval/claim-jev.mjs && node --test motion/mechanics.test.mjs graph/film-graph.test.mjs graph/motion-profile.test.mjs graph/contrast-fix.test.mjs worker/fingerprint.test.mjs worker/audio-level.test.mjs runtime.test.mjs"
+    "check": "node --check cli.mjs && node --check motion/mechanics.js && node --check graph/film-graph.mjs && node --check graph/local-agent.mjs && node --check graph/audio.mjs && node --check graph/assets.mjs && node --check graph/motion-profile.mjs && node --check graph/run.mjs && node --check graph/contrast-fix.mjs && node --check worker/fingerprint.mjs && node --check worker/audio-level.mjs && node --check worker/auto-score.mjs && node --check worker/score-existing.mjs && node --check worker/render.mjs && node --check eval/claim-jev.mjs && node --test motion/mechanics.test.mjs graph/film-graph.test.mjs graph/local-agent.test.mjs graph/motion-profile.test.mjs graph/contrast-fix.test.mjs worker/fingerprint.test.mjs worker/audio-level.test.mjs worker/auto-score.test.mjs runtime.test.mjs"
   },
   "dependencies": {
     "@langchain/core": "1.2.13",
