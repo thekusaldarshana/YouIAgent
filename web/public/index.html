@@ -3,15 +3,18 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#10110f" />
+  <meta name="theme-color" content="#09090b" />
   <title>__APP_NAME__ · Local studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" />
   <link rel="stylesheet" href="/styles.css" />
   <script src="/app.js" type="module"></script>
 </head>
 <body>
-  <header class="bar"><div class="brand"><span class="brand-mark">✳</span> __APP_NAME__ <span class="brand-divider">/</span> film studio</div><div class="bar-actions"><a href="#past-creations">Past creations</a><span class="badge">LOCAL PREVIEW</span></div></header>
+  <div class="backdrop-grid" aria-hidden="true"></div><div class="backdrop-glow" aria-hidden="true"></div>
+  <header class="bar" id="top-bar"><div class="bar-inner"><div class="brand"><span class="brand-mark" aria-hidden="true">Y</span> __APP_NAME__ <span class="brand-divider">/</span> film studio</div><div class="bar-actions"><a href="#past-creations">Past creations</a><span class="badge">Local preview</span></div></div></header>
   <main>
-    <section class="hero"><div class="eyebrow">SOURCE TO STORY TO FILM</div><h1>Show what<br /><em>you made.</em></h1><p>Give the agent a public site and repository. It reads the product, finds a story, checks its claims, and renders a film you can review.</p></section>
+    <section class="hero"><div class="eyebrow">Source · Story · Film · <strong>local</strong></div><h1>Show what you made.</h1><p>Give the agent a public site and repository. It reads the product, finds a story, checks its claims, and renders a film you can review.</p></section>
     <section class="form-grid">
       <form id="source-form" class="panel"><div class="panel-top"><span>NEW FILM</span><span>01 / 02</span></div><div class="panel-content">
         <label for="website">Website URL</label><input id="website" type="url" placeholder="https://example.com" required />
@@ -43,6 +46,6 @@
     </section>
     <section class="cost"><div class="section-top"><div><span class="eyebrow">LOCAL FIRST</span><h2>See the work, then share it.</h2></div></div><p class="section-intro">Every job keeps its plan, captured source, composition, checks, and final export in a local workspace. Review the film and its claims before publishing. Generation time and cost vary by project and model.</p></section>
   </main>
-  <footer><span>__APP_NAME__ / LOCAL STUDIO</span><span>Open source pipeline · hosted service in development</span></footer>
+  <footer><div class="footer-inner"><span><span class="brand-mark" aria-hidden="true">Y</span>__APP_NAME__ · Local studio</span><span>Open source pipeline · hosted service in development</span></div></footer>
 </body>
 </html>

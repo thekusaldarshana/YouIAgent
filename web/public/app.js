@@ -238,3 +238,8 @@ if (/^[0-9a-f-]{36}$/.test(resumed || '')) poll(resumed).then(() => {
 });
 loadLibrary();
 setInterval(loadLibrary, 15000);
+
+const topBar = document.querySelector('#top-bar');
+const syncBar = () => topBar?.classList.toggle('is-scrolled', window.scrollY > 8);
+window.addEventListener('scroll', syncBar, { passive: true });
+syncBar();
