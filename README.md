@@ -10,6 +10,7 @@ Version: **0.1.0**.
 - Public website and GitHub source capture with source containment checks.
 - A source-quote claim gate using OpenRouter’s Jev Decisions API.
 - A deterministic HyperFrames, FFmpeg, and FFprobe render worker.
+- A local web app for creating jobs, watching graph progress, and reviewing the MP4.
 - Optional, user-supplied licensed audio and media. Without `FILM_AUDIO_DIR`, the film is silent.
 
 Generated films, source captures, credentials, research logs, local job directories, and third-party music are excluded from version control.
@@ -40,6 +41,8 @@ export FILM_ASSET_DIR=/absolute/path/to/licensed-media
 
 node harness/graph/run.mjs https://example.com https://github.com/owner/repository "Create a short product launch film."
 ```
+
+For the local browser UI, run `npm run dev --prefix web` after installing the harness dependencies and setting the same environment variables. Open `http://127.0.0.1:4174`. See [web/README.md](web/README.md) for the UI's current scope.
 
 ## Square motion-studio run
 

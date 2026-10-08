@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#10110f" />
+  <title>__APP_NAME__ · Local studio</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <script src="/app.js" type="module"></script>
+</head>
+<body>
+  <header class="bar"><div class="brand"><span class="brand-mark">✳</span> __APP_NAME__ <span class="brand-divider">/</span> film studio</div><span class="badge">LOCAL PREVIEW</span></header>
+  <main>
+    <section class="hero"><div class="eyebrow">SOURCE TO STORY TO FILM</div><h1>Show what<br /><em>you made.</em></h1><p>Give the agent a public site and repository. It reads the product, finds a story, checks its claims, and renders a film you can review.</p></section>
+    <section class="form-grid">
+      <form id="source-form" class="panel"><div class="panel-top"><span>NEW FILM</span><span>01 / 02</span></div><div class="panel-content">
+        <label for="website">Website URL</label><input id="website" type="url" placeholder="https://example.com" required />
+        <label for="repository">Public GitHub repository</label><input id="repository" type="url" placeholder="https://github.com/owner/repo" required />
+        <label for="goal">Creative goal</label><textarea id="goal" rows="3" placeholder="Create a short product launch film."></textarea>
+        <button id="submit-job" class="primary" type="submit">Make film <span>↗</span></button><p id="form-feedback" class="feedback" role="status" aria-live="polite">Runs on this computer with your configured Codex CLI and local render tools.</p>
+      </div></form>
+      <div class="panel pipeline"><div class="panel-top"><span>PRODUCTION</span><span>02 / 02</span></div><div class="panel-content">
+        <div class="pipeline-step"><span>01</span><div><strong>Read the source</strong><p>Site design, repository, and evidence.</p></div><b id="stage-capture">WAITING</b></div>
+        <div class="pipeline-step"><span>02</span><div><strong>Build the story</strong><p>Fresh plan and source-backed claims.</p></div><b id="stage-plan">WAITING</b></div>
+        <div class="pipeline-step"><span>03</span><div><strong>Compose and check</strong><p>Motion, audio, and HyperFrames validation.</p></div><b id="stage-compose">WAITING</b></div>
+        <div class="pipeline-step"><span>04</span><div><strong>Render</strong><p>MP4, poster, and technical checks.</p></div><b id="stage-render">WAITING</b></div>
+        <div class="boundary-note"><span>↳</span><p>This build is a local product preview. Hosted accounts, billing, and cloud execution are not connected.</p></div>
+      </div></div>
+    </section>
+    <section id="job-result" class="result hidden" aria-live="polite"><div class="section-top"><div><span class="eyebrow">YOUR FILM</span><h2 id="job-heading">In production</h2></div><span id="job-state" class="state">RUNNING</span></div>
+      <div id="job-warning" class="warning hidden"></div>
+      <div class="result-grid"><div class="result-card"><span class="card-label">SOURCE</span><strong id="site-title">—</strong><p id="site-description">Reading the site and repository.</p></div><div class="result-card"><span class="card-label">CURRENT STEP</span><strong id="runner-message">Starting</strong><p id="runner-detail">This page updates as the graph progresses.</p></div></div>
+      <div id="film-wrap" class="film-wrap hidden"><video id="film" controls preload="metadata"></video><div class="artifacts"><a id="film-download" download="film.mp4">Download MP4 ↓</a><a id="poster-download" download="poster.jpg">Poster ↓</a><a id="manifest-link" download="source-manifest.json">Source record ↓</a></div></div>
+    </section>
+    <section class="cost"><div class="section-top"><div><span class="eyebrow">LOCAL FIRST</span><h2>See the work, then share it.</h2></div></div><p class="section-intro">Every job keeps its plan, captured source, composition, checks, and final export in a local workspace. Review the film and its claims before publishing. Generation time and cost vary by project and model.</p></section>
+  </main>
+  <footer><span>__APP_NAME__ / LOCAL STUDIO</span><span>Open source pipeline · hosted service in development</span></footer>
+</body>
+</html>

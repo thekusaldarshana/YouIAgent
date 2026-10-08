@@ -1,4 +1,4 @@
-# The release contains only the reproducible OSS harness and its source-capture adapters.
+# Keep the reproducible OSS harness and local web app; exclude jobs and secrets.
 /*
 !/.gitignore
 !/README.md
@@ -26,13 +26,20 @@
 !/harness/skills/film-graph/
 /harness/bench/
 
-# Keep only the modules used by the OSS command-line pipeline.
+# Web source adapters and the local film studio.
 /web/*
 !/web/config.mjs
 !/web/context-style.mjs
 !/web/context-style.test.mjs
 !/web/private-keys.mjs
 !/web/source.mjs
+!/web/server.mjs
+!/web/job-state.mjs
+!/web/job-state.test.mjs
+!/web/package.json
+!/web/README.md
+!/web/public/
+!/web/.gitignore
 
 # Generated output, local state, credentials, and local tooling.
 **/node_modules/
