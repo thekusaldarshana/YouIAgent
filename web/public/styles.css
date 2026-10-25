@@ -22,7 +22,9 @@ code{font-family:var(--font-mono);font-size:.92em}
 .bar-actions{display:flex;align-items:center;gap:22px}
 .bar-actions a{font-size:14px;color:var(--fg-muted);text-decoration:none;transition:color var(--motion)}
 .bar-actions a:hover{color:var(--fg)}
-.badge{font-size:12px;font-weight:500;color:var(--fg-muted);border:1px solid var(--border);border-radius:6px;padding:4px 10px}
+.bar-actions .github-star{display:inline-flex;align-items:center;gap:8px;padding:6px 11px;border:1px solid var(--border-strong);border-radius:7px;color:var(--fg);font-size:12px;font-weight:600;white-space:nowrap}
+.bar-actions .github-star:hover{border-color:var(--accent);background:var(--accent-dim)}
+.github-star svg{flex:none}
 
 main{max-width:1024px;margin:0 auto;padding:0 32px}
 
@@ -57,6 +59,10 @@ main{max-width:1024px;margin:0 auto;padding:0 32px}
 #render-status{margin-bottom:20px}
 .field-note{font-size:13px;line-height:1.5;color:var(--fg-muted);margin:0 0 20px}
 .field-note code{color:var(--fg)}
+.folder-choice{display:flex;align-items:center;gap:12px;margin:-8px 0 12px}
+.folder-choice button{padding:8px 12px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:var(--bg-card);color:var(--fg);font-size:13px;font-weight:500;cursor:pointer}
+.folder-choice button:hover{border-color:var(--accent);background:var(--accent-dim)}
+.folder-choice span{font-size:13px;color:var(--fg-muted);overflow-wrap:anywhere}
 
 /* buttons */
 .primary,.resume-panel button,.run-controls button{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 22px;border:0;border-radius:10px;background:var(--fg);color:#09090b;font-size:15px;font-weight:600;cursor:pointer;transition:transform var(--motion),background var(--motion)}

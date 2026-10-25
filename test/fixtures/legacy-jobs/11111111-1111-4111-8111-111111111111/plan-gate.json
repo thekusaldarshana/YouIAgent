@@ -1,0 +1,44 @@
+{
+  "data": {
+    "durationSeconds": 18,
+    "posterAtSeconds": 17,
+    "musicChoice": "none",
+    "claims": [
+      {
+        "claim": "One typed send call",
+        "quote": "One typed send() call.",
+        "sourcePath": "source-repo/README.md"
+      }
+    ],
+    "scenes": [
+      {
+        "name": "a",
+        "start": 0,
+        "duration": 6
+      },
+      {
+        "name": "b",
+        "start": 6,
+        "duration": 6
+      },
+      {
+        "name": "c",
+        "start": 12,
+        "duration": 6
+      }
+    ]
+  },
+  "issues": [],
+  "evaluated": [
+    {
+      "claim": "One typed send call",
+      "sourcePath": "source-repo/README.md",
+      "probabilitySupported": 0.99,
+      "model": "fixture"
+    }
+  ],
+  "passed": true,
+  "thresholdExperimental": true,
+  "uncertainClaims": [],
+  "cacheKey": "62e012f9f43766adcce0be59f21adfa7faf9d31af92490cf4623b0bacdb24ed6"
+}

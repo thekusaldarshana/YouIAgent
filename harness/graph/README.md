@@ -1,13 +1,15 @@
 # Local LangGraph film prototype
 
-This is a working LangGraph.js `StateGraph`, not a simulated flow. Run with Node 22 and the pinned dependencies in `harness/package-lock.json`.
+This is a working LangGraph.js `StateGraph`, not a simulated flow. Run with Node 22 and the pinned dependencies in the root `package-lock.json`. The source is TypeScript; the commands below run the compiled build in `dist/`, so run `npm run setup` (or `npm run build`) first.
 
 The pipeline has been exercised against a real public product source and render. The saved trial artifacts and internal research notes are deliberately excluded from the OSS distribution.
 
 ```bash
-cd harness && npm ci
-node graph/run.mjs https://example.com https://github.com/owner/repo
+npm run setup
+npm run film -- https://example.com https://github.com/owner/repo
 ```
+
+Use `-` for an omitted website or repository. The repository argument can also be a local folder path. Private GitHub repositories use the machine's existing Git credential helper.
 
 The local test uses GPT-6 Sol through the signed-in Codex app-server. Set `FILM_MODEL` and `FILM_EFFORT` to change that adapter, or select Claude Code to run through the Claude Agent SDK. The default asks the composition agent to create a new score for each film. Set `FILM_MUSIC_MODE=library` for the bundled CC0 tracks, `FILM_AUDIO_DIR` for your own licensed tracks, or `FILM_MUSIC_MODE=silent` for no background music. Supply a flat directory of licensed images, videos, and audio through `FILM_ASSET_DIR` to stage them in the job's `film-inputs/` catalog.
 
@@ -20,14 +22,14 @@ Set `FILM_PROFILE=motion-studio` for the square 27-second profile. It requires a
 - `capture` fetches public HTML/CSS, shallow-clones the repository, records the commit and captured-source hash, and obtains a fresh Context.dev styleguide. No local design cache is used by default.
 - `prepare` creates the compact evidence pack, stages the pinned runtime and motion helpers, installs a coordinator skill plus focused brand, concept, motion, and review skills in the job workspace, and catalogs optional local media inputs.
 - `createPlan` is the first model call. It invents the story, writes the beat plan, source-cited claims, exact source excerpts, and a music choice.
-- `planGate` verifies durations, source path containment, and exact excerpt presence. The default profile adds Jev support probabilities: only a near-certain contradiction blocks during this uncalibrated trial, while medium-confidence decisions are recorded for review. The motion-studio profile accepts only exact local source quotes. A failing plan gets at most one targeted model repair. On resume, a passing gate is reused only when the plan, cited source-file bytes, site capture hash, and repository commit match.
+- `planGate` verifies durations, source path containment, and exact excerpt presence. With `OPENROUTER_API_KEY`, the product profile adds Jev support probabilities: only a near-certain contradiction blocks during this uncalibrated trial, while medium-confidence decisions are recorded for review. Without that key, jobs use exact local source quotes. A failing plan gets at most one targeted model repair. On resume, a passing gate is reused only when the plan, cited source-file bytes, site capture hash, and repository commit match.
 - `stageAudio` records the planned original score path or copies a selected library track. In original mode, the composition agent writes `make-score.mjs`; `checkComposition` runs that script with Node file permissions limited to the composition and validates the generated WAV before rendering.
 - `compose` is the second model call. It writes a unique HyperFrames composition and handoff. It does not run HyperFrames.
 - `checkComposition` runs the HyperFrames gate in code. A failure gets at most two targeted model repairs, each followed by the same gate.
 - `renderFilm` invokes the deterministic worker for MP4, music loudness correction, poster and FFprobe verification. New runs pass a check attestation keyed to the composition and frozen asset bytes; the worker skips its duplicate HyperFrames check only when that hash still matches. A standalone worker run without an attestation retains its own check.
 - `reviewFilm` creates a sampled contact sheet and asks the local agent to inspect the rendered film using the focused review skill. It records `film-output/visual-review.md`. If media inspection is unavailable, the report says `unreviewed`; review does not silently certify the film or rewrite the approved composition.
 
-Events, model JSONL, Jev decisions, node output and the MP4 stay under `.youiagent/jobs/<uuid>/`. `node harness/graph/metrics.mjs <job-dir>` writes `graph-metrics.json` with node times, observable Codex steps, token totals, Jev usage, Context.dev credits, and render data. A token-price calculation is only an API base-rate estimate, not a subscription charge or hosted unit cost.
+Events, model JSONL, Jev decisions, node output and the MP4 stay under `.youiagent/jobs/<uuid>/`. `node dist/harness/graph/metrics.js <job-dir>` writes `graph-metrics.json` with node times, observable Codex steps, token totals, Jev usage, Context.dev credits, and render data. A token-price calculation is only an API base-rate estimate, not a subscription charge or hosted unit cost.
 
 ## Resume after local failure
 
@@ -35,7 +37,7 @@ For the **same captured source and plan**, resume without recapturing or calling
 
 ```bash
 FILM_JOB_DIR=/absolute/path/to/job FILM_RESUME_PLAN=1 FILM_RESUME_COMPOSITION=1 \
-node harness/graph/run.mjs https://example.com https://github.com/owner/repo
+npm run film -- https://example.com https://github.com/owner/repo
 ```
 
 Set `FILM_RESUME_COMPOSITION=1` only when the composition and render handoff are already on disk and you intend to keep them; otherwise the graph runs composition again. It checks that the source URL and repository URL match the job. Re-capture into a new job when either source changes. Do not treat a later repository commit on the same URL as matching the old capture unless the goal is to reproduce that pinned earlier version.

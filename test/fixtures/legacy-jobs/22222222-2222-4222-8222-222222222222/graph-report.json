@@ -1,0 +1,76 @@
+{
+  "startedAt": "2026-10-11T20:45:15.685Z",
+  "finishedAt": "2026-10-11T20:45:15.954Z",
+  "manifest": {
+    "capturedAt": "2026-10-01T00:00:00.000Z",
+    "goal": "Fixture",
+    "website": {
+      "url": "https://example.com/",
+      "title": "Example",
+      "description": "Fixture site",
+      "capturedSourceSha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+    },
+    "repository": {
+      "url": "https://github.com/example/repo",
+      "kind": "github",
+      "commit": "abc123",
+      "workspacePath": "source-repo/"
+    },
+    "warnings": []
+  },
+  "plan": {
+    "durationSeconds": 18,
+    "posterAtSeconds": 17,
+    "musicChoice": "none",
+    "claims": [
+      {
+        "claim": "One typed send call",
+        "quote": "One typed send() call.",
+        "sourcePath": "source-repo/README.md"
+      }
+    ],
+    "scenes": [
+      {
+        "name": "a",
+        "start": 0,
+        "duration": 6
+      },
+      {
+        "name": "b",
+        "start": 6,
+        "duration": 6
+      },
+      {
+        "name": "c",
+        "start": 12,
+        "duration": 6
+      }
+    ]
+  },
+  "music": {
+    "choice": "none",
+    "title": null,
+    "author": null,
+    "license": null,
+    "sourceUrl": null
+  },
+  "claimDecisions": [
+    {
+      "claim": "One typed send call",
+      "sourcePath": "source-repo/README.md",
+      "probabilitySupported": 0.99,
+      "model": "fixture"
+    }
+  ],
+  "planRepairs": 0,
+  "compositionRepairs": 0,
+  "render": {
+    "output": "fixture",
+    "durationSeconds": 18,
+    "hasAudio": true
+  },
+  "review": {
+    "status": "reported",
+    "report": "fixture"
+  }
+}

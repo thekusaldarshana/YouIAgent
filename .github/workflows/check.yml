@@ -1,0 +1,56 @@
+name: Check
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  verify:
+    name: Typecheck, build, test (Linux)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Install FFmpeg for the integration tests
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run build
+      - run: npm test
+      - name: Setup check (a clean runner has no provider CLI, and says only that)
+        run: |
+          set +e
+          output=$(npm run --silent setup:check 2>&1)
+          status=$?
+          echo "$output"
+          [ "$status" -eq 1 ] && [ "$(echo "$output" | grep -c '^Missing: Codex or Claude Code CLI$')" -eq 1 ]
+      - name: No generated output or secrets are tracked
+        run: |
+          git diff --check
+          ! git ls-files | grep -E '^(dist/|\.youiagent/|node_modules/)|\.env$'
+  platforms:
+    name: Platform preview (non-blocking)
+    runs-on: ${{ matrix.os }}
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Install FFmpeg
+        if: runner.os == 'macOS'
+        run: brew install ffmpeg
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run build
+      - run: npm test

@@ -1,0 +1,10 @@
+{
+  "websiteUrl": "https://example.com/",
+  "repositoryUrl": "https://github.com/example/repo",
+  "goal": "Fixture",
+  "audioDir": null,
+  "musicMode": "silent",
+  "provider": "codex",
+  "model": "fixture",
+  "effort": "high"
+}

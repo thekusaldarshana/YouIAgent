@@ -1,0 +1,19 @@
+{
+  "id": "22222222-2222-4222-8222-222222222222",
+  "createdAt": "2026-10-01T00:00:00.000Z",
+  "state": "complete",
+  "input": {
+    "websiteUrl": "https://example.com/",
+    "repositoryUrl": "https://github.com/example/repo",
+    "goal": "Fixture",
+    "provider": "codex",
+    "model": "fixture",
+    "musicMode": "silent"
+  },
+  "profile": "product",
+  "claimMode": "exact",
+  "attempt": 1,
+  "pid": null,
+  "error": null,
+  "finishedAt": "2026-10-01T00:05:00.000Z"
+}

@@ -1,0 +1,17 @@
+{
+  "capturedAt": "2026-10-01T00:00:00.000Z",
+  "goal": "Fixture",
+  "website": {
+    "url": "https://example.com/",
+    "title": "Example",
+    "description": "Fixture site",
+    "capturedSourceSha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+  },
+  "repository": {
+    "url": "https://github.com/example/repo",
+    "kind": "github",
+    "commit": "abc123",
+    "workspacePath": "source-repo/"
+  },
+  "warnings": []
+}

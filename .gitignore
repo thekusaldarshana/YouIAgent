@@ -2,6 +2,29 @@
 /*
 !/.gitignore
 !/README.md
+!/RELEASE_CHECKLIST.md
+!/docs/
+/docs/*
+!/docs/engineering/
+/docs/engineering/*
+!/docs/engineering/TS_MIGRATION_PLAN.md
+!/docs/engineering/TS_MIGRATION_CODEX_PROMPT.md
+!/package.json
+!/package-lock.json
+!/tsconfig.json
+!/tsconfig.base.json
+!/tsconfig.client.json
+!/tsconfig.scripts.json
+!/setup.mjs
+!/setup/
+!/scripts/
+!/shared/
+!/test/
+!/.github/
+/.github/*
+!/.github/workflows/
+/.github/workflows/*
+!/.github/workflows/check.yml
 !/LICENSE
 !/NOTICE
 !/SECURITY.md
@@ -11,10 +34,9 @@
 
 # Keep the selected harness source while excluding trials, job histories, and dependencies.
 /harness/*
-!/harness/package.json
-!/harness/package-lock.json
-!/harness/cli.mjs
-!/harness/runtime.test.mjs
+!/harness/cli.ts
+!/harness/runtime.test.ts
+!/harness/runtime/
 !/harness/motion/
 !/harness/media/
 !/harness/eval/
@@ -22,7 +44,7 @@
 !/harness/worker/
 !/harness/skills/
 /harness/eval/*
-!/harness/eval/claim-jev.mjs
+!/harness/eval/claim-jev.ts
 /harness/skills/*
 !/harness/skills/film-graph/
 !/harness/skills/film-brand/
@@ -33,23 +55,15 @@
 
 # Web source adapters and the local film studio.
 /web/*
-!/web/config.mjs
-!/web/context-style.mjs
-!/web/context-style.test.mjs
-!/web/private-keys.mjs
-!/web/source.mjs
-!/web/server.mjs
-!/web/job-state.mjs
-!/web/provider-login.mjs
-!/web/job-state.test.mjs
-!/web/smoke.test.mjs
-!/web/package.json
+!/web/*.ts
+!/web/client/
 !/web/README.md
 !/web/public/
 !/web/.gitignore
 
 # Generated output, local state, credentials, and local tooling.
 **/node_modules/
+/dist/
 /.youiagent/
 /.local/
 /web/.local/

@@ -1,8 +1,0 @@
-{
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "dev": "node server.mjs",
-    "check": "node --check server.mjs && node --check provider-login.mjs && node --check source.mjs && node --check context-style.mjs && node --check private-keys.mjs && node --check job-state.mjs && node --check public/app.js && node --test context-style.test.mjs job-state.test.mjs smoke.test.mjs"
-  }
-}

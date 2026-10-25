@@ -1,0 +1,16 @@
+{"at":"2026-10-11T20:45:15.300Z","node":"capture","state":"start"}
+{"at":"2026-10-11T20:45:15.308Z","node":"capture","state":"complete","seconds":0.012}
+{"at":"2026-10-11T20:45:15.331Z","node":"prepare","state":"start"}
+{"at":"2026-10-11T20:45:15.417Z","node":"prepare","state":"complete","seconds":0.088}
+{"at":"2026-10-11T20:45:15.460Z","node":"plan","state":"start"}
+{"at":"2026-10-11T20:45:15.469Z","node":"plan","state":"complete","seconds":0.009}
+{"at":"2026-10-11T20:45:15.499Z","node":"planGate","state":"start"}
+{"at":"2026-10-11T20:45:15.532Z","node":"planGate","state":"complete","seconds":0.036,"outcome":"passed","detail":null}
+{"at":"2026-10-11T20:45:15.554Z","node":"audio","state":"start"}
+{"at":"2026-10-11T20:45:15.558Z","node":"audio","state":"complete","seconds":0.004}
+{"at":"2026-10-11T20:45:15.581Z","node":"compose","state":"start"}
+{"at":"2026-10-11T20:45:15.587Z","node":"compose","state":"complete","seconds":0.006}
+{"at":"2026-10-11T20:45:15.602Z","node":"check","state":"start"}
+{"at":"2026-10-11T20:45:15.621Z","node":"check","state":"complete","seconds":0.02,"outcome":"passed","detail":null}
+{"at":"2026-10-11T20:45:15.644Z","node":"render","state":"start"}
+{"at":"2026-10-11T20:45:15.653Z","node":"render","state":"failed","seconds":0.008,"error":"Render worker failed (1): fixture render failure"}
